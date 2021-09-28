@@ -1,0 +1,4 @@
+requests
+bottle
+gunicorn
+bottle-sqlite
