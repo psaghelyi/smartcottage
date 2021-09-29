@@ -1,1 +1,1 @@
-GET http://localhost:8080/sensor/s1 HTTP/1.1
+GET https://psaghelyi.ddns.net:12345/sensor/s1 HTTP/1.1
