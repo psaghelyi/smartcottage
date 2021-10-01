@@ -4,11 +4,13 @@ import time
 import json
 import logging
 import sqlite3
-from bottle.ext import sqlite
+from bottle_sqlite import SQLitePlugin
+from datetime import datetime
 
 logger = logging.getLogger('smartcottage')
 
 app = application = bottle.default_app()
+
 
 @app.get('/heartbeat')
 def index():
@@ -16,51 +18,61 @@ def index():
 
 
 @app.get('/sensor/<id>')
-def get_sensor(id, db):
+def get_sensor(db, id):
     one_day = 24 * 60 * 60
-    epoch_time = int(time.time())
+    epoch_now = int(time.time())
 
-    from_epoch = int(bottle.request.query.from_epoch or epoch_time - one_day)
-    to_epoch = int(bottle.request.query.to_epoch or epoch_time)  # until now
-    limit = int(bottle.request.query.limit or '-100')  # last hundred
+    to_epoch = int(bottle.request.query.to_epoch or epoch_now)
+    from_epoch = int(bottle.request.query.from_epoch or to_epoch - one_day)
+    limit = int(bottle.request.query.limit or 1000)
 
-    cursor = db.execute('''
+    cursor = \
+        db.execute('''
+                    SELECT * FROM (
+                        SELECT * FROM sensor
+                        WHERE id=?
+                        ORDER BY epoch DESC
+                        LIMIT ?)
+                    ORDER BY epoch;
+                   ''', (id, -limit)) \
+        if limit < 0 else \
+        db.execute('''
+                    SELECT * FROM (
                         SELECT * FROM sensor
                         WHERE id=? AND epoch>=? AND epoch<?
-                        ORDER BY epoch, id
-                        LIMIT ?;
-                        ''', (id, from_epoch, to_epoch, limit)) \
-                if limit > 0 else \
-             db.execute('''
-                        SELECT * FROM (
-                            SELECT * FROM sensor 
-                            WHERE id=? AND epoch>=? AND epoch<? 
-                            ORDER BY epoch DESC 
-                            LIMIT ?)                           
-                        ORDER BY epoch, id;
-                        ''', (id, from_epoch, to_epoch, -limit))
-    
+                        ORDER BY epoch DESC
+                        LIMIT ?)
+                    ORDER BY epoch;
+                   ''', (id, from_epoch, to_epoch, limit))
+
     rows = [{
-                "epoch": row["epoch"],
-                "id": row["id"],
-                "data": json.loads(row["data"])
-            } for row in cursor.fetchall()]
+        "epoch": row["epoch"],
+        "id": row["id"],
+        "data": json.loads(row["data"])
+    } for row in cursor.fetchall()]
     return json.dumps(rows)
 
 
 @app.put('/sensor/<id>')
 def put_sensor(id, db):
     epoch_time = int(time.time())
-    data = json.dumps(bottle.request.json)
-    
-    logger.info(data)
-    
-    db.execute('''INSERT INTO sensor (epoch, id, data) VALUES (?,?,?);''', (epoch_time, id, data))
+    try:
+        data = json.dumps(bottle.request.json)
+    except:
+        logger.error(
+            f"{datetime.now()} - {id}: cannot process sensor data: {bottle.request.body.read()}")
+        return
+
+    logger.info(f"{datetime.now()} - {id}: {data}")
+
+    db.execute('''INSERT INTO sensor (epoch, id, data) VALUES (?,?,?);''',
+               (epoch_time, id, data))
     db.commit()
 
 
 def init_sensor_db(conn):
-    conn.cursor().execute('''CREATE TABLE IF NOT EXISTS sensor (epoch INTEGER, id TEXT, data TEXT);''')
+    conn.cursor().execute(
+        '''CREATE TABLE IF NOT EXISTS sensor (epoch INTEGER, id TEXT, data TEXT);''')
     conn.cursor().execute('''CREATE INDEX IF NOT EXISTS idx_epoch_id ON sensor (epoch, id);''')
     conn.commit()
 
@@ -76,12 +88,11 @@ def parseargs():
 def main():
     args = parseargs()
     logging.basicConfig(level=logging.INFO)
-    
+
     with sqlite3.connect('sensor.db') as conn:
         init_sensor_db(conn)
 
-    plugin = sqlite.Plugin(dbfile='sensor.db')
-    app.install(plugin)
+    app.install(SQLitePlugin(dbfile='sensor.db'))
 
     bottle.run(
         server='gunicorn',

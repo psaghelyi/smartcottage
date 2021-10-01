@@ -1,1 +1,1 @@
-GET https://psaghelyi.ddns.net:12345/sensor/s1 HTTP/1.1
+GET https://psaghelyi.ddns.net:12345/sensor/s1?limit=-24 HTTP/1.1
