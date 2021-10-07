@@ -16,7 +16,6 @@ app = application = bottle.default_app()
 def index():
     return dict(status='OK')
 
-
 @app.get('/sensor/<id>')
 def get_sensor(db, id):
     one_day = 24 * 60 * 60
@@ -69,6 +68,10 @@ def put_sensor(id, db):
                (epoch_time, id, data))
     db.commit()
 
+# Static Routes
+@app.get('/<filename:re:.*>')    
+def server_static(filename):
+  return bottle.static_file(filename, root='./web')
 
 def init_sensor_db(conn):
     conn.cursor().execute(
@@ -79,6 +82,7 @@ def init_sensor_db(conn):
 
 def parseargs():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--host", type=str, default="0.0.0.0")
     parser.add_argument("--port", type=int, default=12345)
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--timeout", type=int, default=30)
@@ -96,7 +100,7 @@ def main():
 
     bottle.run(
         server='gunicorn',
-        host='0.0.0.0',
+        host=args.host,
         port=args.port,
         workers=args.workers,
         timeout=args.timeout,
