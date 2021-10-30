@@ -3,3 +3,4 @@ bottle
 gunicorn
 bottle-sqlite
 pytz
+matplotlib
