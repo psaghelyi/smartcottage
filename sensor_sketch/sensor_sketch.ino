@@ -12,7 +12,7 @@ DHT dht(DHTPIN, DHTTYPE);
 
 const char* ssid = "DHARMA_NET";
 const char* password = "JuanValdes5";
-const char* sensor_url = "https://psaghelyi.ddns.net:12345/sensor/s3";
+const char* sensor_url = "https://psaghelyi.ddns.net:12345/sensor/s1";
 
 const int dataPostDelay = 10 * 60 * 1000;  // 10 minutes
 
@@ -42,6 +42,10 @@ void connect_wifi() {
   wifiClient.setInsecure();
 }
 
+void disconnect_wifi() {
+  WiFi.disconnect();
+}
+
 
 void upload_sensor(String const & st, String const & sh)
 {
@@ -68,6 +72,7 @@ void loop()
     String st = isnan(t) ? String("") : String(t);
     String sh = isnan(h) ? String("") : String(h);
     upload_sensor(st, sh);
+    disconnect_wifi();
     delay(dataPostDelay);
   }
 }
