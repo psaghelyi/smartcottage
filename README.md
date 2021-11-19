@@ -1,5 +1,13 @@
 # SmartCottage
 
+## download modules
+
+`$ python -m venv .venv`
+
+`$ .venv/bin/activate`
+
+`$ python -m pip install -r requirements.txt`
+
 ## install service
 
 `$ sudo cp smartcottage.service /etc/systemd/system`

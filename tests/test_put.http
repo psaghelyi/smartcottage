@@ -1,4 +1,4 @@
-PUT http://localhost:8080/sensor/s1 HTTP/1.1
+PUT https://localhost:22222/sensor/s1 HTTP/1.1
 Content-Type: application/json
 
 {

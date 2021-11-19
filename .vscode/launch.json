@@ -5,10 +5,22 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File",
+            "name": "smartcottage",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/smartcottage",
+            "args": [
+                "--port=22222",
+                "--timeout=200"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "migrate_db",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/migrate_db",
             "console": "integratedTerminal",
             "justMyCode": true
         }

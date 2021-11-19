@@ -1,83 +1,8 @@
+import sys
 import argparse
 import bottle
-import time
-import json
-import logging
-import sqlite3
-from bottle_sqlite import SQLitePlugin
-from datetime import datetime
-
-logger = logging.getLogger('smartcottage')
-
-app = application = bottle.default_app()
-
-
-@app.get('/heartbeat')
-def index():
-    return dict(status='OK')
-
-@app.get('/sensor/<id>')
-def get_sensor(db, id):
-    one_day = 24 * 60 * 60
-    epoch_now = int(time.time())
-
-    to_epoch = int(bottle.request.query.to_epoch or epoch_now)
-    from_epoch = int(bottle.request.query.from_epoch or to_epoch - one_day)
-    limit = int(bottle.request.query.limit or 1000)
-
-    cursor = \
-        db.execute('''
-                    SELECT * FROM (
-                        SELECT * FROM sensor
-                        WHERE id=?
-                        ORDER BY epoch DESC
-                        LIMIT ?)
-                    ORDER BY epoch;
-                   ''', (id, -limit)) \
-        if limit < 0 else \
-        db.execute('''
-                    SELECT * FROM (
-                        SELECT * FROM sensor
-                        WHERE id=? AND epoch>=? AND epoch<?
-                        ORDER BY epoch DESC
-                        LIMIT ?)
-                    ORDER BY epoch;
-                   ''', (id, from_epoch, to_epoch, limit))
-
-    rows = [{
-        "epoch": row["epoch"],
-        "id": row["id"],
-        "data": json.loads(row["data"])
-    } for row in cursor.fetchall()]
-    return json.dumps(rows)
-
-
-@app.put('/sensor/<id>')
-def put_sensor(id, db):
-    epoch_time = int(time.time())
-    try:
-        data = json.dumps(bottle.request.json)
-    except:
-        logger.error(
-            f"{datetime.now()} - {id}: cannot process sensor data: {bottle.request.body.read()}")
-        return
-
-    logger.info(f"{datetime.now()} - {id}: {data}")
-
-    db.execute('''INSERT INTO sensor (epoch, id, data) VALUES (?,?,?);''',
-               (epoch_time, id, data))
-    db.commit()
-
-# Static Routes
-@app.get('/<filename:re:.*>')    
-def server_static(filename):
-  return bottle.static_file(filename, root='./web')
-
-def init_sensor_db(conn):
-    conn.cursor().execute(
-        '''CREATE TABLE IF NOT EXISTS sensor (epoch INTEGER, id TEXT, data TEXT);''')
-    conn.cursor().execute('''CREATE INDEX IF NOT EXISTS idx_epoch_id ON sensor (epoch, id);''')
-    conn.commit()
+from copy import copy
+import server
 
 
 def parseargs():
@@ -88,15 +13,15 @@ def parseargs():
     parser.add_argument("--timeout", type=int, default=30)
     return parser.parse_args()
 
-
 def main():
-    args = parseargs()
-    logging.basicConfig(level=logging.INFO)
+    args = copy(parseargs())
 
-    with sqlite3.connect('sensor.db') as conn:
-        init_sensor_db(conn)
-
-    app.install(SQLitePlugin(dbfile='sensor.db'))
+    # https://stackoverflow.com/questions/55934681/prevent-bottles-backend-server-plugin-gunicorn-from-intercepting-command-line
+    # must reset the args, otherwise gunicorn will go nuts
+    sys.argv = sys.argv[:1]
+    
+    app = bottle.default_app()
+    server.create_routes(app)
 
     bottle.run(
         server='gunicorn',
@@ -105,6 +30,7 @@ def main():
         workers=args.workers,
         timeout=args.timeout,
         debug=True,
+        reloader=False,
         keyfile='key.pem',
         certfile='cert.pem')
 

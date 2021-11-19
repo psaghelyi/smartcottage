@@ -22,7 +22,6 @@
   </div>
 
   <script>
-    const LIMIT = -200
     var sensorData = { s1: [], s2: [], s3: [] }
 
     function epoch2time(epoch) {
@@ -106,7 +105,7 @@
 
     //Fetch Data from API
     async function getSensorData(id, storage) {
-      const apiUrl = window.location.origin + "/sensor/" + id + "?limit=" + LIMIT
+      const apiUrl = window.location.origin + "/sensor/" + id
       console.log(apiUrl)
       const response = await fetch(apiUrl)
       const result = await response.json()
