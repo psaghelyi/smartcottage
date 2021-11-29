@@ -67,7 +67,11 @@ def create_routes(app):
         }
         client.write_points([item])
 
-    # Static Routes
+    @app.route('/')
+    def default_route():
+        return server_static('index.html')
+
+    # Static Routes    
     @app.route('/<filename:re:.*>')    
     def server_static(filename):
         return bottle.static_file(filename, root='./web')

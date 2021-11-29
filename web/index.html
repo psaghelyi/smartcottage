@@ -22,7 +22,7 @@
   </div>
 
   <script>
-    var sensorData = { s1: [], s2: [], s3: [] }
+    var sensorData = { s1: [], mk1: [], s3: [] }
 
     function epoch2time(epoch) {
       const myDate = new Date(epoch * 1000);
@@ -34,7 +34,7 @@
     {
       await Promise.allSettled([
         getSensorData("s1", sensorData),
-        getSensorData("s2", sensorData),
+        getSensorData("mk1", sensorData),
         getSensorData("s3", sensorData)
       ])
     }
@@ -54,8 +54,8 @@
                 pointRadius: 1
               },
               {
-                label: 'Emelet',
-                data: sensorData.s2,
+                label: 'Kovi',
+                data: sensorData.mk1,
                 borderColor: 'SandyBrown',
                 backgroundColor: 'Maroon',
                 pointRadius: 1
