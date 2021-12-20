@@ -1,1 +1,1 @@
-GET https://localhost:22222/sensor/s1?limit=-24 HTTP/1.1
+GET https://localhost:22222/sensor/test1?limit=-24 HTTP/1.1

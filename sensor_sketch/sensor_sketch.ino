@@ -10,9 +10,11 @@ WiFiClientSecure wifiClient;
 DHT dht(DHTPIN, DHTTYPE);
 
 
+//const char* ssid = "TP-LINK_M5250_30228B";
+//const char* password = "21275721";
 const char* ssid = "DHARMA_NET";
 const char* password = "JuanValdes5";
-const char* sensor_url = "https://psaghelyi.ddns.net:12345/sensor/s1";
+const char* sensor_url = "https://psaghelyi.ddns.net:12345/sensor/sN";
 
 const int dataPostDelay = 10 * 60 * 1000;  // 10 minutes
 

@@ -28,21 +28,18 @@ def create_routes(app):
         from_epoch = int(bottle.request.query.from_epoch or to_epoch - one_day * 2)
         limit = int(bottle.request.query.limit or 1000)
 
-        result = []
-        while len(result) == 0:
-            result = client.query("\
-                SELECT time, temperature, humidity \
-                FROM cottage \
-                WHERE time >= $start_time AND time < $end_time AND sensor = $sensor \
-                LIMIT $limit",
-                bind_params={
-                    "start_time": from_epoch * second2nano,
-                    "end_time": to_epoch * second2nano,
-                    "sensor": sensor_id,
-                    "limit": limit},
-                epoch=True)
-            from_epoch -= one_day
-
+        result = client.query("\
+            SELECT time, temperature, humidity \
+            FROM cottage \
+            WHERE time >= $start_time AND time < $end_time AND sensor = $sensor \
+            LIMIT $limit",
+            bind_params={
+                "start_time": from_epoch * second2nano,
+                "end_time": to_epoch * second2nano,
+                "sensor": sensor_id,
+                "limit": limit},
+            epoch=True)
+        
         rows = [{
             "epoch": int(row["time"]) // second2nano,
             "data": {"temperature": row["temperature"], "humidity": row["humidity"]}
@@ -52,10 +49,7 @@ def create_routes(app):
 
     @app.put('/sensor/<sensor_id>')
     def put_sensor(sensor_id):
-        data = dict(
-            temperature=float(bottle.request.json["temperature"]),
-            humidity=float(bottle.request.json["humidity"])
-        )
+        data = dict_variable = {key:float(value) for (key,value) in bottle.request.json.items()}
         logger.info(f"{datetime.now()} - {sensor_id}: {data}")
         item = {
             "measurement": "cottage",
