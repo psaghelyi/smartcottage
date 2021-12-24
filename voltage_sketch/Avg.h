@@ -4,18 +4,32 @@
 
 class Avg
 {
-private:
-    int _n;
-    int _movn;
-    int _narr;
+protected:
     float _a;
-    float *_arr;
-
+    int _n;
 public:
-  Avg(float *arr = nullptr, int narr = 0);
-  float inc_avg(float v);
-  float mov_avg(float v); 
+  Avg();
+  virtual ~Avg();
+  virtual float eval(float v) = 0;
 };
 
+class IncAvg : public Avg
+{
+public:
+  IncAvg();
+  float eval(float v);
+};
+
+class MovAvg : public Avg
+{
+private:
+  float *_arr;
+  int _narr;
+  int _movn;    
+public:
+  MovAvg(int narr);
+  ~MovAvg();
+  float eval(float v);
+};
 
 #endif Avg

@@ -13,11 +13,16 @@ class Backend
     static const char _sensor_url[];
 
     WiFiClientSecure _wifiClient;
+
+    static void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info);
+    static void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info);
+    static void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info);
+    
   public:
     Backend();
     void connect_wifi();
     void disconnect_wifi();
-    void upload_sensor(String const & sv);
+    void upload_sensor(float v, float d, float z, int samples, int granularity);
     
 };
 

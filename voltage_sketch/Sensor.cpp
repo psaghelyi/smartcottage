@@ -8,11 +8,11 @@
 
 
 Sensor::Sensor() {
-  _samples.reserve(500);  // ~370
+  _samples.reserve(500);  // ~370 for 50Hz
 }
 
-int Sensor::deviation() {
-  int mi = INT_MAX, ma = 0;
+int Sensor::vpp() {
+  int mi = INT_MAX, ma = INT_MIN;
   for (auto it = std::begin(_samples); it != std::end(_samples); it++) {
     if (*it < mi) mi = *it;
     if (*it > ma) ma = *it;
@@ -41,10 +41,10 @@ float Sensor::rms()
 }
 
 int Sensor::calibration() {
-  Avg avg;
+  IncAvg incAvg;
   float zeroPoint;
   for (int i = 0; i < 100000; ++i) {
-    zeroPoint = avg.inc_avg(analogRead(34));
+    zeroPoint = incAvg.eval(analogRead(34));
   }
   _zeroPoint = zeroPoint;
   return _zeroPoint;
@@ -59,11 +59,10 @@ int Sensor::collect_samples() {
     int curr = analogRead(34) - _zeroPoint;
     
     if (prev <= 0 && curr > 0) {
-      if (!in_wave) {
-        in_wave = true; 
-      } else {
+      if (in_wave) {
         break;
       }
+      in_wave = true;
     }
 
     if (in_wave) {

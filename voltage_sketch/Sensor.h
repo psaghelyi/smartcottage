@@ -11,10 +11,12 @@ private:
   
 public:
   Sensor();
-  int deviation();
+  int vpp();
   float rms();
   int collect_samples();
   int calibration();
+  int zeroPoint() const { return _zeroPoint; }
+  int num_sample() const { return _samples.size(); }
   void dump();
 };
 
