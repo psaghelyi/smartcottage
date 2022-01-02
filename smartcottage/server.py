@@ -43,7 +43,7 @@ def create_routes(app):
         rows = [{
             "epoch": int(row["time"]) // second2nano,
             "data": {"temperature": row["temperature"], "humidity": row["humidity"]}
-        } for row in result.get_points()]
+        } for row in result.get_points() if row["temperature"] > -30.]
 
         return json.dumps(rows)
 
