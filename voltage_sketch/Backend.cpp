@@ -7,7 +7,7 @@
 //const char Backend::_password[] = "21275721";
 const char Backend::_ssid[] = "DHARMA_NET";
 const char Backend::_password[] = "JuanValdes5";
-const char Backend::_sensor_url[] = "https://psaghelyi.ddns.net:12345/sensor/v1";
+const char Backend::_sensor_url[] = "https://psaghelyi.ddns.net:12345/power/v1";
 
 
 Backend::Backend() {
@@ -57,7 +57,7 @@ void Backend::disconnect_wifi() {
   WiFi.disconnect();
 }
 
-void Backend::upload_sensor(float v, float d, float z, int samples, int granularity)
+void Backend::upload_sensor(float v, int d, int z, int samples, int granularity)
 {
   String body = "{\"voltage\": " + String(v) + 
                 ", \"peak2peak\": " + String(d) +

@@ -17,7 +17,7 @@ public:
   Sensor();
   std::size_t collect_samples(int zeroPoint);
   bool compute(int zeroPoint);
-  void dump();
+  void dump(int zeroPoint);
 
   std::size_t num_sample() const { return _samples.size(); }
   int vpMin() const { return _vpMin; }

@@ -58,10 +58,10 @@ bool Sensor::compute(int zeroPoint) {
   return true;
 }
 
-void Sensor::dump() {
+void Sensor::dump(int zeroPoint) {
   //Serial.println(_samples.size());
   for (auto it = std::begin(_samples); it != std::end(_samples); it++) {
-    Serial.println(*it);
+    Serial.println(*it - zeroPoint);
   }
   Serial.flush();
 }

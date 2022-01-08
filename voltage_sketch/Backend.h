@@ -22,7 +22,7 @@ class Backend
     Backend();
     void connect_wifi();
     void disconnect_wifi();
-    void upload_sensor(float v, float d, float z, int samples, int granularity);
+    void upload_sensor(float v, int d, int z, int samples, int granularity);
     
 };
 

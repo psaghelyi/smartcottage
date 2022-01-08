@@ -7,6 +7,13 @@
 template <uint8_t N, class input_t = uint16_t, class sum_t = uint32_t>
 class SMA {
   public:
+    SMA(input_t init = 0): sum(init * N) 
+    {
+      for (int i = 0; i < N; i++) {
+        previousInputs[i] = init;
+      }
+    }
+    
     input_t operator()(input_t input) {
       sum -= previousInputs[index];
       sum += input;

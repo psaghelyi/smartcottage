@@ -43,7 +43,7 @@ def create_routes(app):
         rows = [{
             "epoch": int(row["time"]) // second2nano,
             "data": {"temperature": row["temperature"], "humidity": row["humidity"]}
-        } for row in result.get_points()]
+        } for row in result.get_points() if row["temperature"] > -30.]
 
         return json.dumps(rows)
 
@@ -53,6 +53,20 @@ def create_routes(app):
         logger.info(f"{datetime.now()} - {sensor_id}: {data}")
         item = {
             "measurement": "cottage",
+            "tags": {
+                "sensor": sensor_id
+            },
+            "time": int(time.time()) * second2nano,
+            "fields": data
+        }
+        client.write_points([item])
+
+    @app.put('/<measurement>/<sensor_id>')
+    def put_sensor(measurement, sensor_id):
+        data = dict_variable = {key:float(value) for (key,value) in bottle.request.json.items()}
+        logger.info(f"{datetime.now()} - {sensor_id}: {data}")
+        item = {
+            "measurement": measurement,
             "tags": {
                 "sensor": sensor_id
             },

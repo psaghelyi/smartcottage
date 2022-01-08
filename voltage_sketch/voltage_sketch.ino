@@ -1,15 +1,17 @@
-
 #include "Sensor.h"
 #include "Backend.h"
 
 //#define DUMP
+//#define DEBUG
 
 Sensor sensor;
 Backend backend;
 
-static void dump_debug(float v) {
-  static SMA<20> filter;
-  Serial.println(filter(v));
+static void debug_print(String s) {
+#ifdef DEBUG
+  Serial.println(s);
+  Serial.flush();
+#endif
 }
 
 void setup() {
@@ -18,15 +20,13 @@ void setup() {
 #ifndef DUMP
   backend.connect_wifi();
 #endif
-
-  Serial.println(sizeof(int));
 }
 
 void loop() {
   static float v;
   static int vpmin, vpmax;
   static int z = 3000;
-  static SMA<10> filter_z;
+  static SMA<10> filter_z(z);
   static int counter, g;
   static unsigned long time_upload = millis();
   
@@ -37,7 +37,7 @@ void loop() {
   }
 
 #ifdef DUMP
-  sensor.dump();
+  sensor.dump(z);
   for (int i = 0; i < 10; ++i) Serial.println(0);
   delay(1000);
   
@@ -74,6 +74,4 @@ void loop() {
     counter = 0, g = 0;
     time_upload = millis();
   }
-
-  
 }
