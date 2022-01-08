@@ -1,7 +1,6 @@
 
 #include "Sensor.h"
 #include "Backend.h"
-#include "Avg.h"
 
 //#define DUMP
 
@@ -9,53 +8,72 @@ Sensor sensor;
 Backend backend;
 
 static void dump_debug(float v) {
-  static MovAvg movAvg(100);
-  Serial.println(movAvg.eval(v));
+  static SMA<20> filter;
+  Serial.println(filter(v));
 }
 
 void setup() {
   Serial.begin(115200);
   pinMode(34,INPUT);
-  Serial.print("Calibrated zero point: ");
-  Serial.println(sensor.calibration());
+#ifndef DUMP
   backend.connect_wifi();
+#endif
+
+  Serial.println(sizeof(int));
 }
 
 void loop() {
-  static unsigned long time_calibrate = millis();
-  if (millis() - time_calibrate > 1000 * 60 * 60) { // one hour
-    Serial.print("Calibrated zero point: ");
-    Serial.println(sensor.calibration());
-    time_calibrate = millis();
-  }
+  static float v;
+  static int vpmin, vpmax;
+  static int z = 3000;
+  static SMA<10> filter_z;
+  static int counter, g;
+  static unsigned long time_upload = millis();
   
   // collect at least 300 samples to get valid measurement
   // (~370 is the usual at 50Hz)
-  while (sensor.collect_samples() < 300)
-  {}
+  while (sensor.collect_samples(z) < 300)
+  {    
+  }
 
 #ifdef DUMP
   sensor.dump();
   for (int i = 0; i < 10; ++i) Serial.println(0);
-  delay(3000);
+  delay(1000);
+  
+  //static SMA<20> movAvg1, movAvg2;
+  //Serial.print(movAvg1(-sensor.vpMin()));
+  //Serial.print("  ");
+  //Serial.print(movAvg2(sensor.vpMax()));
+  //Serial.print("  ");
+  //Serial.println(sensor.zeroPoint());
+  
   return;
 #endif
 
-  static float v, d;
-  static int counter, g;
-  static unsigned long time_upload = millis();
+  
+  if (!sensor.compute(z)) {
+    Serial.println("WTF");
+  }
+
   v += sensor.rms();
-  d += sensor.vpp();
+  vpmin += sensor.vpMin();
+  vpmax += sensor.vpMax();
   g += sensor.num_sample();
   counter++;
   if (millis() - time_upload > 5000) {
-    v /= counter; 
-    d /= counter;
+    v /= counter;
+    vpmin /= counter;
+    vpmax /= counter;
     g /= counter;
-    backend.upload_sensor(v, d, sensor.zeroPoint(), counter, g);
+    z = filter_z((vpmin + vpmax) / 2);
+    backend.upload_sensor(v, vpmax - vpmin, z, counter, g);
     // reset cycle
-    v = 0., d = 0.;
+    v = 0.;
+    vpmin = 0; vpmax = 0;
     counter = 0, g = 0;
     time_upload = millis();
   }
+
+  
 }

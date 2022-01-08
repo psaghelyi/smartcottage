@@ -3,10 +3,10 @@
 
 #include <HTTPClient.h>
 
-const char Backend::_ssid[] = "TP-LINK_M5250_30228B";
-const char Backend::_password[] = "21275721";
-//const char Backend::_ssid[] = "DHARMA_NET";
-//const char Backend::_password[] = "JuanValdes5";
+//const char Backend::_ssid[] = "TP-LINK_M5250_30228B";
+//const char Backend::_password[] = "21275721";
+const char Backend::_ssid[] = "DHARMA_NET";
+const char Backend::_password[] = "JuanValdes5";
 const char Backend::_sensor_url[] = "https://psaghelyi.ddns.net:12345/sensor/v1";
 
 

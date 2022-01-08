@@ -1,8 +1,6 @@
 #include "Sensor.h"
-#include "Avg.h"
 
 #include <climits>
-#include <stdexcept>
 #include <math.h>
 #include <Arduino.h>
 
@@ -11,54 +9,16 @@ Sensor::Sensor() {
   _samples.reserve(500);  // ~370 for 50Hz
 }
 
-int Sensor::vpp() {
-  int mi = INT_MAX, ma = INT_MIN;
-  for (auto it = std::begin(_samples); it != std::end(_samples); it++) {
-    if (*it < mi) mi = *it;
-    if (*it > ma) ma = *it;
-  }
-  return ma-mi;
-}
-
-float Sensor::rms()
-{
-    // Calculate square.
-    unsigned long square = 0; 
-    for (auto it = std::begin(_samples); it != std::end(_samples); it++) {
-        unsigned long q = *it * *it;
-        if (ULONG_MAX - square <= q)
-          throw std::overflow_error("RMS calculation overflow");
-        square += q;
-    }
- 
-    // Calculate Mean.
-    float mean = square / (float)_samples.size();
- 
-    // Calculate Root.
-    float root = sqrtf(mean);
- 
-    return root;
-}
-
-int Sensor::calibration() {
-  IncAvg incAvg;
-  float zeroPoint;
-  for (int i = 0; i < 100000; ++i) {
-    zeroPoint = incAvg.eval(analogRead(34));
-  }
-  _zeroPoint = zeroPoint;
-  return _zeroPoint;
-}
-
-int Sensor::collect_samples() {
+size_t Sensor::collect_samples(int zeroPoint) {
   bool in_wave = false;
   int prev = INT_MAX;
   
-  _samples.clear();  
+  _samples.clear();
+  
   for(;;) {
-    int curr = analogRead(34) - _zeroPoint;
+    int curr = analogRead(34);
     
-    if (prev <= 0 && curr > 0) {
+    if (prev <= zeroPoint && curr > zeroPoint) {
       if (in_wave) {
         break;
       }
@@ -73,6 +33,29 @@ int Sensor::collect_samples() {
   }
   
   return _samples.size();
+}
+
+bool Sensor::compute(int zeroPoint) {
+  _vpMin = INT_MAX;
+  _vpMax = INT_MIN;
+  
+  // Calculate square.
+  unsigned long square = 0; 
+  for (auto it = std::begin(_samples); it != std::end(_samples); it++) {
+    unsigned long q = (*it-zeroPoint) * (*it-zeroPoint);
+    if (ULONG_MAX - square <= q) {
+      //throw std::overflow_error("RMS calculation overflow");
+      return false;
+    }
+    square += q;
+    if (*it < _vpMin) _vpMin = *it;
+    if (*it > _vpMax) _vpMax = *it;
+  }
+  // Calculate Mean.
+  float mean = square / (float)_samples.size();
+  // Calculate Root.
+  _rms = sqrtf(mean);
+  return true;
 }
 
 void Sensor::dump() {
