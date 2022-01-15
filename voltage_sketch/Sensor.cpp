@@ -15,12 +15,12 @@ size_t Sensor::collect_samples(int zeroPoint) {
   
   _samples.clear();
   
-  for(;;) {
+  for(int i = 0; i < 500; i++) {
     int curr = analogRead(34);
     
     if (prev <= zeroPoint && curr > zeroPoint) {
-      if (in_wave) {
-        break;
+      if (in_wave && _samples.size() > 300) {
+        return _samples.size();
       }
       in_wave = true;
     }
@@ -32,7 +32,7 @@ size_t Sensor::collect_samples(int zeroPoint) {
     prev = curr;
   }
   
-  return _samples.size();
+  return 0;
 }
 
 bool Sensor::compute(int zeroPoint) {
