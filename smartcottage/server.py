@@ -3,6 +3,7 @@ import json
 import logging
 import influxdb
 import bottle
+import itertools
 from datetime import datetime
 
 logger = logging.getLogger('smartcottage')
@@ -63,17 +64,37 @@ def create_routes(app):
 
     @app.put('/<measurement>/<sensor_id>')
     def put_sensor(measurement, sensor_id):
-        data = dict_variable = {key:float(value) for (key,value) in bottle.request.json.items()}
-        logger.info(f"{datetime.now()} - {sensor_id}: {data}")
+        t = int(time.time()) * second2nano
+
+        # extract calculated values
+        fields = dict_variable = {key:float(value) for (key,value) in bottle.request.json.items() if key != 'raw'}
+        logger.info(f"{datetime.now()} - {sensor_id}: {fields}")
         item = {
             "measurement": measurement,
             "tags": {
                 "sensor": sensor_id
             },
-            "time": int(time.time()) * second2nano,
-            "fields": data
+            "time": t,
+            "fields": fields
         }
         client.write_points([item])
+
+        # extract raw data points
+        raw = bottle.request.json["raw"]
+        if len(raw):
+            items = [
+                {
+                    "measurement": measurement,
+                    "tags": {
+                        "sensor": "raw_" + sensor_id
+                    },
+                    "time": t + tdelta,
+                    "fields": {"value": float(value)}
+                } 
+                for (value, tdelta) 
+                in zip(bottle.request.json["raw"], itertools.count(0, 100_000_000))
+            ]
+            client.write_points(items)
 
     @app.route('/')
     def default_route():
