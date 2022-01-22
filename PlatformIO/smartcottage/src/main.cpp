@@ -7,8 +7,6 @@
 //#define DUMP
 //#define DEBUG
 
-#define CYCLE_MS 5000
-
 static Backend backend;
 static Sensor sensor1, sensor2, *psensor = &sensor1;
 static Payload payload1, payload2, *ppayload = &payload1;
@@ -17,6 +15,8 @@ static bool do_upload = false;
 static void debug_print(String s)
 {
 #ifdef DEBUG
+    Serial.print(millis());
+    Serial.print(": ");
     Serial.println(s);
     Serial.flush();
 #endif
@@ -33,58 +33,48 @@ static void swap_storage()
         ppayload = &payload1;
     }
     do_upload = true;
-    ppayload->reset();
 }
 
 void loop()
 {
     static int zeroPoint = 3000;
     static SMA<10> filter_z(zeroPoint);
-    static unsigned long time_upload = millis();
 
     Sensor &sensor = *psensor;
     Payload &payload = *ppayload;
 
-    // collect at least 300 samples to get valid measurement
-    // (~370 is the usual at 50Hz)
-    while (sensor.collect_samples(zeroPoint) < 300)
+    while (true)
     {
+        if (!sensor.collect_samples(zeroPoint))
+        {
+            Serial.println("Irregular wave pattern");
+            continue;
+        }
+        break;
     }
 
 #ifdef DUMP
-    sensor.dump(z);
+    sensor.dump(zeroPoint);
     for (int i = 0; i < 10; ++i)
         Serial.println(0);
-    delay(1000);
-
-    // static SMA<20> movAvg1, movAvg2;
-    // Serial.print(movAvg1(-sensor.vpMin()));
-    // Serial.print("  ");
-    // Serial.print(movAvg2(sensor.vpMax()));
-    // Serial.print("  ");
-    // Serial.println(sensor.zeroPoint());
-
+    
     return;
 #endif
 
     if (!sensor.compute(zeroPoint))
     {
-        Serial.println("WTF");
+        Serial.println("RMS calculation overflow");
+        return;
     }
 
-    payload.rms += sensor.rms();
-    payload.vpmin += sensor.vpMin();
-    payload.vpmax += sensor.vpMax();
-    payload.granularity += sensor.num_sample();
-    payload.samples++;
-    if (millis() - time_upload > CYCLE_MS)
-    {
-        payload.normalize();
-        zeroPoint = filter_z(payload.zero);
-        swap_storage();
-        // reset cycle
-        time_upload = millis();
-    }
+    payload.rms = sensor.rms();
+    payload.vpmin = sensor.vpMin();
+    payload.vpmax = sensor.vpMax();
+    payload.zero = (sensor.vpMin() + sensor.vpMax()) / 2;
+    payload.granularity = sensor.num_sample();
+    payload.samples = CYCLE_COUNT;
+    zeroPoint = filter_z(payload.zero);
+    swap_storage();
 }
 
 static void loop0()

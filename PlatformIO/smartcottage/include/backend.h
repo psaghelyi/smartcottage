@@ -4,6 +4,8 @@
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 
+#include "common.h"
+
 struct Payload
 {
     float rms;
@@ -11,9 +13,6 @@ struct Payload
     int zero;
     int samples;
     int granularity;
-
-    void reset();
-    void normalize();
 };
 
 class Backend
@@ -35,7 +34,7 @@ public:
     Backend();
     void connect_wifi();
     void disconnect_wifi();
-    void upload_measurement(const Payload &payload, const std::vector<int> &samples);
+    void upload_measurement(const Payload &payload, const SampleArray &samples);
 };
 
 #endif

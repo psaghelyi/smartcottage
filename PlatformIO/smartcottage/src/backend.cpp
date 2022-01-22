@@ -2,24 +2,6 @@
 
 #include <HTTPClient.h>
 
-void Payload::reset()
-{
-    rms = 0.;
-    vpmin = 0;
-    vpmax = 0;
-    samples = 0;
-    granularity = 0;
-}
-
-void Payload::normalize()
-{
-    rms /= samples;
-    vpmin /= samples;
-    vpmax /= samples;
-    granularity /= samples;
-    zero = (vpmin + vpmax) / 2;
-}
-
 // const char Backend::_ssid[] = "TP-LINK_M5250_30228B";
 // const char Backend::_password[] = "21275721";
 const char Backend::_ssid[] = "DHARMA_NET";
@@ -92,7 +74,7 @@ int Backend::send_request(const String &body)
     return httpResponseCode;
 }
 
-void Backend::upload_measurement(const Payload &payload, const std::vector<int> &samples)
+void Backend::upload_measurement(const Payload &payload, const SampleArray &samples)
 {
     String body = "{\"voltage\": " + String(payload.rms) +
                   ", \"peak2peak\": " + String(payload.vpmax - payload.vpmin) +
