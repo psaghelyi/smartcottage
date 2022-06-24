@@ -1,0 +1,16 @@
+version: "3"
+services:
+  smartcottage:
+    image: python:3
+    volumes:
+      - .:/usr/src/smartcottage
+    command: >
+      sh -c
+      "
+        cd /usr/src/smartcottage
+        pip install --no-cache-dir -r requirements.txt
+        python smartcottage
+      "
+    ports:
+      - 8888:12345
+  

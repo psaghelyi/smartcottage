@@ -92,7 +92,7 @@ def create_routes(app):
                     "fields": {"value": float(value)}
                 } 
                 for (value, tdelta) 
-                in zip(bottle.request.json["raw"], itertools.count(0, 100_000_000))
+                in zip(bottle.request.json["raw"], itertools.count(0, 10_000_000))
             ]
             client.write_points(items)
 

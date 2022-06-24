@@ -1,0 +1,19 @@
+[Unit]
+Description=SmartCottage service
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=pi
+WorkingDirectory=/home/pi/Project/github/psaghelyi/smartcottage
+ExecStart=/usr/bin/env .venv/bin/python3 smartcottage
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=smartcottage
+
+[Install]
+WantedBy=multi-user.target
+

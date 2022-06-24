@@ -1,6 +1,8 @@
 import sys
+import os
 import argparse
 import bottle
+from pathlib import Path
 from copy import copy
 import server
 
@@ -11,6 +13,8 @@ def parseargs():
     parser.add_argument("--port", type=int, default=12345)
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--timeout", type=int, default=30)
+    parser.add_argument("--certfile", type=str, default=".cert/psaghelyi_ddns_net.pem")
+    parser.add_argument("--keyfile", type=str, default=".cert/psaghelyi_ddns_net.key")
     return parser.parse_args()
 
 def main():
@@ -23,6 +27,10 @@ def main():
     app = bottle.default_app()
     server.create_routes(app)
 
+    if not Path(args.certfile).is_file() or \
+       not Path(args.keyfile).is_file():
+        sys.exit(os.EX_CONFIG) 
+
     bottle.run(
         server='gunicorn',
         host=args.host,
@@ -31,8 +39,10 @@ def main():
         timeout=args.timeout,
         debug=True,
         reloader=False,
-        keyfile='key.pem',
-        certfile='cert.pem')
+        certfile=args.certfile,
+        keyfile=args.keyfile)
+
+    sys.exit(os.EX_OK) 
 
 
 if __name__ == "__main__":

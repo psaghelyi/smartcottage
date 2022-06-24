@@ -10,8 +10,12 @@
             "request": "launch",
             "program": "${workspaceFolder}/smartcottage",
             "args": [
-                "--port=22222",
-                "--timeout=200"
+                "--host=0.0.0.0",
+                "--port=5000",
+                "--workers=1",
+                "--timeout=200",
+                "--certfile=.cert/psaghelyi_ddns_net.pem",
+                "--keyfile=.cert/psaghelyi_ddns_net.key"
             ],
             "console": "integratedTerminal",
             "justMyCode": false
