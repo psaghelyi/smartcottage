@@ -102,12 +102,12 @@ void Backend::upload_measurement(const Payload &payload, const std::vector<int> 
 
     String log = body;
     
-    body += ", \"raw\": [0, ";
+    body += ", \"raw\": [" + String(payload.zero) + ", ";
     for (int sample : samples)
     {
         body += String(sample) + ", ";
     }
-    body += "0]}";
+    body += String(payload.zero) + "]}";
 
     Serial.print(millis());
     Serial.print(": ");

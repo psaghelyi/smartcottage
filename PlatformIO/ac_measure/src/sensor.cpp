@@ -21,10 +21,10 @@ size_t Sensor::collect_samples(int zeroPoint)
     {
         int curr = analogRead(_pin);
 
-        if ((start_below && prev <= zeroPoint && curr > zeroPoint) ||
+        if ((start_below && prev < zeroPoint && curr >= zeroPoint) ||
             (prev >= zeroPoint && curr < zeroPoint))
         {
-            if (in_wave && _samples.size() > 300)
+            if (in_wave && _samples.size() > 350)
             {
                 return _samples.size();
             }
@@ -49,19 +49,17 @@ bool Sensor::compute(int zeroPoint)
 
     // Calculate square.
     unsigned long square = 0;
-    for (auto it = std::begin(_samples); it != std::end(_samples); it++)
+    for (int sample : _samples)
     {
-        unsigned long q = (*it - zeroPoint) * (*it - zeroPoint);
+        unsigned long q = (sample - zeroPoint) * (sample - zeroPoint);
         if (ULONG_MAX - square <= q)
         {
             // throw std::overflow_error("RMS calculation overflow");
             return false;
         }
         square += q;
-        if (*it < _vpMin)
-            _vpMin = *it;
-        if (*it > _vpMax)
-            _vpMax = *it;
+        if (sample < _vpMin) _vpMin = sample;
+        if (sample > _vpMax) _vpMax = sample;
     }
     // Calculate Mean.
     float mean = square / (float)_samples.size();
@@ -73,9 +71,9 @@ bool Sensor::compute(int zeroPoint)
 void Sensor::dump(int zeroPoint)
 {
     // Serial.println(_samples.size());
-    for (auto it = std::begin(_samples); it != std::end(_samples); it++)
+    for (int sample : _samples)
     {
-        Serial.println(*it - zeroPoint);
+        Serial.println(sample - zeroPoint);
     }
     Serial.flush();
 }
