@@ -8,8 +8,8 @@
         {
             "name": "PlatformIO",
             "includePath": [
-                "/home/psaghelyi/Project/github/psaghelyi/smartcottage/PlatformIO/smartcottage/include",
-                "/home/psaghelyi/Project/github/psaghelyi/smartcottage/PlatformIO/smartcottage/src",
+                "/home/psaghelyi/Project/github/psaghelyi/smartcottage/PlatformIO/ac_measure/include",
+                "/home/psaghelyi/Project/github/psaghelyi/smartcottage/PlatformIO/ac_measure/src",
                 "/home/psaghelyi/.platformio/packages/framework-arduinoespressif32/libraries/HTTPClient/src",
                 "/home/psaghelyi/.platformio/packages/framework-arduinoespressif32/libraries/WiFiClientSecure/src",
                 "/home/psaghelyi/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
@@ -106,8 +106,8 @@
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
-                    "/home/psaghelyi/Project/github/psaghelyi/smartcottage/PlatformIO/smartcottage/include",
-                    "/home/psaghelyi/Project/github/psaghelyi/smartcottage/PlatformIO/smartcottage/src",
+                    "/home/psaghelyi/Project/github/psaghelyi/smartcottage/PlatformIO/ac_measure/include",
+                    "/home/psaghelyi/Project/github/psaghelyi/smartcottage/PlatformIO/ac_measure/src",
                     "/home/psaghelyi/.platformio/packages/framework-arduinoespressif32/libraries/HTTPClient/src",
                     "/home/psaghelyi/.platformio/packages/framework-arduinoespressif32/libraries/WiFiClientSecure/src",
                     "/home/psaghelyi/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
@@ -203,7 +203,7 @@
                 ]
             },
             "defines": [
-                "PLATFORMIO=60002",
+                "PLATFORMIO=60104",
                 "ARDUINO_ESP32_DEV",
                 "ESP32",
                 "ESP_PLATFORM",

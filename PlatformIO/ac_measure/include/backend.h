@@ -4,17 +4,6 @@
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 
-struct Payload
-{
-    float rms;
-    int vpmin, vpmax;
-    int zero;
-    int samples;
-    int granularity;
-
-    void reset();
-    void normalize();
-};
 
 class Backend
 {
@@ -35,7 +24,7 @@ public:
     Backend();
     void connect_wifi();
     void disconnect_wifi();
-    void upload_measurement(const Payload &payload, const std::vector<int> &samples);
+    void upload(const String &data) const;
 };
 
 #endif

@@ -3,6 +3,7 @@
 #include "sma.h"
 #include "sensor.h"
 #include "backend.h"
+#include "payload.h"
 
 //#define DUMP
 //#define DEBUG
@@ -97,9 +98,9 @@ static void loop0()
 
     if (psensor == &sensor1)
     {
-        backend.upload_measurement(payload2, sensor2.samples());
+        payload2->upload(backend);
     } else {
-        backend.upload_measurement(payload1, sensor1.samples());
+        payload1->upload(backend);
     }
     do_upload = false;
 }

@@ -2,24 +2,6 @@
 
 #include <HTTPClient.h>
 
-void Payload::reset()
-{
-    rms = 0.;
-    vpmin = 0;
-    vpmax = 0;
-    samples = 0;
-    granularity = 0;
-}
-
-void Payload::normalize()
-{
-    rms /= samples;
-    vpmin /= samples;
-    vpmax /= samples;
-    granularity /= samples;
-    zero = (vpmin + vpmax) / 2;
-}
-
 // const char Backend::_ssid[] = "TP-LINK_M5250_30228B";
 // const char Backend::_password[] = "21275721";
 const char Backend::_ssid[] = "DHARMA_NET";
@@ -92,28 +74,13 @@ int Backend::send_request(const String &body)
     return httpResponseCode;
 }
 
-void Backend::upload_measurement(const Payload &payload, const std::vector<int> &samples)
-{
-    String body = "{\"voltage\": " + String(payload.rms) +
-                  ", \"peak2peak\": " + String(payload.vpmax - payload.vpmin) +
-                  ", \"zero\": " + String(payload.zero) +
-                  ", \"samples\": " + String(payload.samples) +
-                  ", \"granularity\": " + String(payload.granularity);
-
-    String log = body;
-    
-    body += ", \"raw\": [" + String(payload.zero) + ", ";
-    for (int sample : samples)
-    {
-        body += String(sample) + ", ";
-    }
-    body += String(payload.zero) + "]}";
-
+void Backend::upload(const String &data) const
+{    
     Serial.print(millis());
     Serial.print(": ");
-    Serial.print(body);
+    Serial.print(data);
     Serial.print(" --> ");
-    int httpResponseCode = send_request(body);
+    int httpResponseCode = send_request(data);
     Serial.println(httpResponseCode);
     Serial.flush();
 }
