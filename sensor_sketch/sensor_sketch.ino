@@ -3,10 +3,16 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 #include <ESP8266HTTPClient.h>
+#include <ESP8266WebServer.h>
 #include <DHT.h>
+#include <Pinger.h>
+extern "C"
+{
+  #include <lwip/icmp.h> // needed for icmp packet definitions
+}
 #include "sma.h"
+#include "config.h"
 
-#define SENSOR_NAME "mk4"
 #define OTA_Host_Name "ESP01-"SENSOR_NAME
 
 #define DHTPIN 2
@@ -16,28 +22,43 @@ DHT dht(DHTPIN, DHTTYPE);
 
 WiFiClientSecure wifiClient;
 
-//const char* ssid = "TP-LINK_M5250_30228B";
-//const char* pass = "21275721";
-//const char* ssid = "DHARMA_NET";
-//const char* pass = "JuanValdes5";
-//const char* ssid = "kovi-deco";
-//const char* pass = "ga1Jione";
-const char* sensor_url = "https://psaghelyi.ddns.net:12345/sensor/"SENSOR_NAME;
+ESP8266WebServer server(80);
+
+const char* ssid = SSID;
+const char* pass = PASS;
+const char* sensor_url = SENSOR_URL;
 
 
-unsigned long startMillis = millis();
+unsigned long startSensorMillis = millis();
+unsigned long startWifiMillis = ULONG_MAX;
 unsigned long currentMillis;
 const unsigned long samples = 10;
 const unsigned long rate = 10 * 60 * 1000 / samples;  // 10 minutes - 10 samples
 
+Pinger pinger;
 
 void connect_wifi() {
-  if (WiFi.status() == WL_CONNECTED)
+  currentMillis = millis();
+  if (currentMillis - startWifiMillis < 30000)
     return;
 
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    Serial.print("Ping test result: ");
+    if (pinger.Ping(WiFi.gatewayIP()))
+    {
+      Serial.println("succeed");
+      Serial.flush();
+      return;
+    }
+    Serial.println("failed !!!");
+    Serial.flush();  
+  }
+  
   Serial.print("Connecting to wifi: ");
   Serial.println(ssid);
   Serial.flush();
+  WiFi.disconnect();
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, pass);
   while (WiFi.waitForConnectResult() != WL_CONNECTED) {
@@ -46,17 +67,20 @@ void connect_wifi() {
     ESP.restart();
   }
 
+  WiFi.setAutoReconnect(true);
+  WiFi.persistent(true);
+
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
   Serial.flush();
 
   wifiClient.setInsecure();
-}
 
-void disconnect_wifi() {
-  WiFi.disconnect();
-  Serial.println("Wifi disconnected");
-  Serial.flush();
+  ArduinoOTA.setHostname(OTA_Host_Name);
+  ArduinoOTA.begin();
+  MDNS.begin(OTA_Host_Name);
+
+  startWifiMillis = currentMillis;
 }
 
 void upload_sensor(String const & st, String const & sh)
@@ -75,22 +99,37 @@ void upload_sensor(String const & st, String const & sh)
   Serial.flush();
 }
 
+void handleRoot() {
+  server.send(200, "text/plain", "Hello");
+}
+
+void handleNotFound(){
+  server.send(404, "text/plain", "404: Not found");
+}
+
 void setup() {
   Serial.begin(115200);
+
+  server.on("/", HTTP_GET, handleRoot);
+  server.onNotFound(handleNotFound);
+  server.begin();
+
   dht.begin();
-  
   // dht needs 2 seconds to settle
-  delay(2000);
-
-  connect_wifi();
-
-  ArduinoOTA.setHostname(OTA_Host_Name);
-  ArduinoOTA.begin();
+  do {
+    delay(2000);
+  }
+  while (dht.readTemperature() > 80.);
 }
 
 void loop()
 {
+  connect_wifi();
+  if (WiFi.status() != WL_CONNECTED)
+    return;
+    
   ArduinoOTA.handle();
+  server.handleClient();
   
   static SMA<samples * 2> sma_tmp;
   static SMA<samples * 2> sma_hmd;
@@ -103,7 +142,7 @@ void loop()
   }
 
   currentMillis = millis();
-  if (currentMillis - startMillis >= rate)
+  if (currentMillis - startSensorMillis >= rate)
   {        
     float t = sma_tmp(dht.readTemperature() * 10.) / 10.;
     float h = sma_hmd(dht.readHumidity() * 10.) / 10.;
@@ -111,7 +150,6 @@ void loop()
     static int counter;
     if (++counter == samples)
     {
-      connect_wifi();
       String st = isnan(t) ? String("") : String(t);
       String sh = isnan(h) ? String("") : String(h);
       upload_sensor(st, sh);
@@ -119,6 +157,6 @@ void loop()
       counter = 0;
     }
     
-    startMillis = currentMillis;
-   }
+    startSensorMillis = currentMillis;
+  }
 }
