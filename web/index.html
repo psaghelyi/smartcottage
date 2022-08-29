@@ -12,6 +12,14 @@
 </head>
 
 <body>
+  <h1>Kovi Temperature ˚C</h1>
+  <div class="container">
+    <canvas id="temperatureKoviChart"></canvas>
+  </div>
+  <h1>Kovi Relative Humidity %</h1>
+  <div class="container">
+    <canvas id="humidityKoviChart"></canvas>
+  </div>  
   <h1>Temperature ˚C</h1>
   <div class="container">
     <canvas id="temperatureChart"></canvas>
@@ -22,7 +30,10 @@
   </div>
 
   <script>
-    var sensorData = { s1: [], s3: [], s4: [], mk1: [], mk2: [], s6: [] }
+    var sensorData = { 
+      s1: [], s2: [], s3: [], s4: [], s5: [], s6: [], 
+      mk1: [], mk2: [], mk3: [], mk4: [] 
+    }
 
     function epoch2time(epoch) {
       const myDate = new Date(epoch * 1000);
@@ -34,17 +45,87 @@
     {
       await Promise.allSettled([
         getSensorData("s1", sensorData),
+        getSensorData("s2", sensorData),
         getSensorData("s3", sensorData),
         getSensorData("s4", sensorData),
+        getSensorData("s5", sensorData),
+        getSensorData("s6", sensorData),
         getSensorData("mk1", sensorData),
         getSensorData("mk2", sensorData),
-        getSensorData("s6", sensorData)        
+        getSensorData("mk3", sensorData),
+        getSensorData("mk4", sensorData)
       ])
     }
 
+    function drawKoviChart(chartName, dataField) {      
+      const ctx = document.getElementById(chartName).getContext('2d');
+      const chart = new Chart(ctx,
+        {
+          type: 'line',
+          data: {
+            datasets: [
+              {
+                label: 'Kovi-bent',
+                data: sensorData.mk1,
+                borderColor: 'Lime',
+                backgroundColor: 'DarkGreen',
+                pointRadius: 1
+              },
+              {
+                label: 'Kovi-kint',
+                data: sensorData.mk2,
+                borderColor: 'Gold',
+                backgroundColor: 'Chocolate',
+                pointRadius: 1
+              },
+              {
+                label: 'mk3',
+                data: sensorData.mk3,
+                borderColor: 'DeepSkyBlue',
+                backgroundColor: 'Navy',
+                pointRadius: 1
+              },
+              {
+                label: 'Kovi-fent',
+                data: sensorData.mk4,
+                borderColor: 'Magenta',
+                backgroundColor: 'Indigo',
+                pointRadius: 1
+              }
+            ]
+          },
+          options: {
+            parsing: {
+              xAxisKey: 'dt',
+              yAxisKey: 'data.' + dataField
+            },
+            plugins: {
+              tooltip: {
+                //enabled: false
+              },
+            },
+            scales: {
+              x: {
+                type: 'time',
+                time: {
+                  unit: 'hour',
+                  tooltipFormat: 'yyyy.MM.dd HH:mm',
+                  displayFormats: {
+                    hour: 'MMM dd. HH:mm'
+                  }
+                },
+                title: {
+                  display: false
+                }
+              }
+            }
+          }
+        });
+    };
+
     function drawChart(chartName, dataField) {      
-      const ctxTemperature = document.getElementById(chartName).getContext('2d');
-      const chart = new Chart(ctxTemperature,
+      const ctx = document.getElementById(chartName).getContext('2d');
+      const chart = new Chart(ctx,
         {
           type: 'line',
           data: {
@@ -57,10 +138,10 @@
                 pointRadius: 1
               },
               {
-                label: 'Györök-lent',
-                data: sensorData.s4,
-                borderColor: '#B2BEB5',
-                backgroundColor: '#708090',
+                label: 'Györök-háló',
+                data: sensorData.s2,
+                borderColor: 'SandyBrown',
+                backgroundColor: 'Maroon',
                 pointRadius: 1
               },
               {
@@ -71,24 +152,24 @@
                 pointRadius: 1,
               },
               {
-                label: 'Kovi-bent',
-                data: sensorData.mk1,
-                borderColor: 'SandyBrown',
-                backgroundColor: 'Maroon',
+                label: 'Györök-lent',
+                data: sensorData.s4,
+                borderColor: 'Silver',
+                backgroundColor: '#404040',
                 pointRadius: 1
               },
               {
-                label: 'Kovi-kint',
-                data: sensorData.mk2,
+                label: 'Galgó-kint',
+                data: sensorData.s5,
                 borderColor: 'Gold',
-                backgroundColor: 'DarkOrange',
+                backgroundColor: 'Chocolate',
                 pointRadius: 1
               },
               {
-                label: 'Galgó',
+                label: 'Galgó-bent',
                 data: sensorData.s6,
-                borderColor: '#A020F0',
-                backgroundColor: '#6C3082',
+                borderColor: 'Magenta',
+                backgroundColor: 'Indigo',
                 pointRadius: 1
               }
             ]
@@ -123,6 +204,8 @@
     };
 
     retrieveSensorDatas().then(_ => {
+      drawKoviChart('temperatureKoviChart', 'temperature');
+      drawKoviChart('humidityKoviChart', 'humidity');
       drawChart('temperatureChart', 'temperature');
       drawChart('humidityChart', 'humidity');
     })
