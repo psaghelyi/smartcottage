@@ -46,6 +46,7 @@ void connect_wifi() {
 
   if (WiFi.status() == WL_CONNECTED)
   {
+    logger.printTimecode();
     logger.print("Ping test result: ");
     if (pinger.Ping(WiFi.gatewayIP()))
     {
@@ -56,12 +57,14 @@ void connect_wifi() {
     logger.println("failed !!!");
   }
   
+  logger.printTimecode();
   logger.print("Connecting to wifi: ");
   logger.println(ssid);
   WiFi.disconnect();
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, pass);
   while (WiFi.waitForConnectResult() != WL_CONNECTED) {
+    logger.printTimecode();
     logger.println("Connection Failed! Rebooting...");
     delay(5000);
     ESP.restart();
@@ -70,6 +73,7 @@ void connect_wifi() {
   WiFi.setAutoReconnect(true);
   WiFi.persistent(true);
 
+  logger.printTimecode();
   logger.print("IP address: ");
   logger.println(WiFi.localIP().toString());
   
@@ -85,6 +89,8 @@ void connect_wifi() {
 void upload_sensor(String const & st, String const & sh)
 {
   String body = "{\"temperature\": " + st + ", \"humidity\": " + sh + "}";
+  logger.printTimecode();
+  logger.print("[send] ");
   logger.print(body);
   logger.print(" --> ");
     
@@ -139,10 +145,17 @@ void loop()
 
   currentMillis = millis();
   if (currentMillis - startSensorMillis >= rate)
-  {        
-    float t = sma_tmp(dht.readTemperature() * 10.) / 10.;
-    float h = sma_hmd(dht.readHumidity() * 10.) / 10.;
-
+  { 
+    float t = dht.readTemperature();
+    float h = dht.readHumidity();
+    
+    String message = "[read] temperature=" + String(t) + "; " + "humidity=" + String(h);
+    logger.printTimecode();
+    logger.println(message);
+    
+    t = sma_tmp(t * 10.) / 10.;
+    h = sma_hmd(h * 10.) / 10.;
+    
     static int counter;
     if (++counter == samples)
     {
