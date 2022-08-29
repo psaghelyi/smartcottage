@@ -11,6 +11,7 @@ extern "C"
   #include <lwip/icmp.h> // needed for icmp packet definitions
 }
 #include "sma.h"
+#include "logger.h"
 #include "config.h"
 
 #define OTA_Host_Name "ESP01-"SENSOR_NAME
@@ -26,8 +27,9 @@ ESP8266WebServer server(80);
 
 const char* ssid = SSID;
 const char* pass = PASS;
-const char* sensor_url = SENSOR_URL;
+const char* sensor_url = SENSOR_URL
 
+Logger<4096> logger;
 
 unsigned long startSensorMillis = millis();
 unsigned long startWifiMillis = ULONG_MAX;
@@ -44,25 +46,23 @@ void connect_wifi() {
 
   if (WiFi.status() == WL_CONNECTED)
   {
-    Serial.print("Ping test result: ");
+    logger.print("Ping test result: ");
     if (pinger.Ping(WiFi.gatewayIP()))
     {
-      Serial.println("succeed");
-      Serial.flush();
+      logger.println("succeed");
+      startWifiMillis = currentMillis;
       return;
     }
-    Serial.println("failed !!!");
-    Serial.flush();  
+    logger.println("failed !!!");
   }
   
-  Serial.print("Connecting to wifi: ");
-  Serial.println(ssid);
-  Serial.flush();
+  logger.print("Connecting to wifi: ");
+  logger.println(ssid);
   WiFi.disconnect();
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, pass);
   while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-    Serial.println("Connection Failed! Rebooting...");
+    logger.println("Connection Failed! Rebooting...");
     delay(5000);
     ESP.restart();
   }
@@ -70,10 +70,9 @@ void connect_wifi() {
   WiFi.setAutoReconnect(true);
   WiFi.persistent(true);
 
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
-  Serial.flush();
-
+  logger.print("IP address: ");
+  logger.println(WiFi.localIP().toString());
+  
   wifiClient.setInsecure();
 
   ArduinoOTA.setHostname(OTA_Host_Name);
@@ -86,8 +85,8 @@ void connect_wifi() {
 void upload_sensor(String const & st, String const & sh)
 {
   String body = "{\"temperature\": " + st + ", \"humidity\": " + sh + "}";
-  Serial.print(body);
-  Serial.print(" --> ");
+  logger.print(body);
+  logger.print(" --> ");
     
   HTTPClient http;
   http.begin(wifiClient, sensor_url);
@@ -95,12 +94,11 @@ void upload_sensor(String const & st, String const & sh)
   int httpResponseCode = http.PUT(body);
   http.end();
 
-  Serial.println(httpResponseCode);
-  Serial.flush();
+  logger.println(httpResponseCode);
 }
 
 void handleRoot() {
-  server.send(200, "text/plain", "Hello");
+  server.send(200, "text/plain", logger.getData());
 }
 
 void handleNotFound(){
@@ -108,8 +106,6 @@ void handleNotFound(){
 }
 
 void setup() {
-  Serial.begin(115200);
-
   server.on("/", HTTP_GET, handleRoot);
   server.onNotFound(handleNotFound);
   server.begin();
