@@ -8,7 +8,6 @@ public:
   Logger()
   {
     _pdata = _data;
-    *_pdata = '\0';
   }
 
   void printTimecode()
@@ -67,20 +66,17 @@ private:
   {
     for(;;)
     {
-      if (_pdata == _data + N)
+      if (_pdata == _data + N - 1)
         _pdata = _data;
 
-      *_pdata = *msg;
-
-      if (*_pdata == '\0')
+      if (*msg == '\0')
         return;
-      
-      ++_pdata;
-      ++msg;
+
+      *_pdata++ = *msg++;
     } 
   }
 
-  char _data[N];
+  char _data[N] = {};
   char *_pdata;
 };
 

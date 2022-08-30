@@ -149,7 +149,7 @@ void loop()
     float t = dht.readTemperature();
     float h = dht.readHumidity();
     
-    String message = "[read] temperature=" + String(t) + "; " + "humidity=" + String(h);
+    String message = "[read] t=" + String(t) + "; " + "h=" + String(h);
     logger.printTimecode();
     logger.println(message);
     
