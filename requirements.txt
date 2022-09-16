@@ -3,4 +3,4 @@ bottle
 gunicorn
 pytz
 matplotlib
-influxdb
+influxdb-client

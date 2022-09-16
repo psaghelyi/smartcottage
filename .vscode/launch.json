@@ -11,7 +11,7 @@
             "program": "${workspaceFolder}/smartcottage",
             "args": [
                 "--host=0.0.0.0",
-                "--port=5000",
+                "--port=12345",
                 "--workers=1",
                 "--timeout=200",
                 "--certfile=.cert/psaghelyi_ddns_net.pem",
