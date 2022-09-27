@@ -1,100 +1,78 @@
-import time
 import json
 import logging
-import influxdb
 import bottle
-import itertools
-from datetime import datetime
+from datetime import datetime, timedelta
+
+import influxdb_client
+from influxdb_client.client.write_api import SYNCHRONOUS
+
+token = "iHi9f5K-BXUS0-fJBuGM7O6W5Irc0kmG97bKLXnRYc1zjnLugTeDqNNFz9zaI6GAKeTE_glSABH_U2h-WeWKpw=="
+org = "smartcottage"
+bucket = "smartcottage"
 
 logger = logging.getLogger('smartcottage')
 logging.basicConfig(level=logging.INFO)
 
 
 def create_routes(app):
-    second2nano = 1_000_000_000
-    one_day = 24 * 60 * 60
 
-    client = influxdb.InfluxDBClient(
-        host='127.0.0.1', port=8086, database='smartcottage')
+    client = influxdb_client.InfluxDBClient(url="http://localhost:8086", token=token, org=org)
+
 
     @app.get('/heartbeat')
     def index():
         return dict(url=bottle.request.url, source=bottle.request.remote_route, status='OK')
 
+
     @app.get('/sensor/<sensor_id>')
     def get_sensor(sensor_id):
-        epoch_now = int(time.time())
+        query_api = client.query_api()
 
-        to_epoch = int(bottle.request.query.to_epoch or epoch_now)
-        from_epoch = int(bottle.request.query.from_epoch or to_epoch - one_day * 2)
-        limit = int(bottle.request.query.limit or 1000)
+        p = {
+            "_start": timedelta(days=-2),
+            "_sensor": sensor_id
+        }
 
-        result = client.query("\
-            SELECT time, temperature, humidity \
-            FROM cottage \
-            WHERE time >= $start_time AND time < $end_time AND sensor = $sensor \
-            LIMIT $limit",
-            bind_params={
-                "start_time": from_epoch * second2nano,
-                "end_time": to_epoch * second2nano,
-                "sensor": sensor_id,
-                "limit": limit},
-            epoch=True)
+        tables = query_api.query('''
+            from(bucket:"smartcottage") |> range(start: _start)
+                |> filter(fn: (r) => r["_measurement"] == "cottage")
+                |> filter(fn: (r) => r["sensor"] == _sensor)
+        ''', params=p)
+        
+        if not tables:
+            return "{}"
+
+        table_humidity,table_temperature = tables
         
         rows = [{
-            "epoch": int(row["time"]) // second2nano,
-            "data": {"temperature": row["temperature"], "humidity": row["humidity"]}
-        } for row in result.get_points() if row["temperature"] > -30.]
+            "epoch": int(t["_time"].timestamp()),
+            "data": {"temperature": t["_value"], "humidity": h["_value"]}
+        } for (t,h) in zip(table_temperature.records,table_humidity.records)]
 
         return json.dumps(rows)
 
+
     @app.put('/sensor/<sensor_id>')
     def put_sensor(sensor_id):
-        data = dict_variable = {key:float(value) for (key,value) in bottle.request.json.items()}
+        data = {key:float(value) for (key,value) in bottle.request.json.items()}
         logger.info(f"{datetime.now()} - {sensor_id}: {data}")
-        item = {
-            "measurement": "cottage",
-            "tags": {
-                "sensor": sensor_id
-            },
-            "time": int(time.time()) * second2nano,
-            "fields": data
-        }
-        client.write_points([item])
+        
+        write_api = client.write_api(write_options=SYNCHRONOUS)
+
+        record = [influxdb_client.Point("cottage").tag("sensor", sensor_id).field(field,value) for (field,value) in data.items()]
+        write_api.write(bucket="smartcottage", org="smartcottage", record=record)
+
 
     @app.put('/<measurement>/<sensor_id>')
     def put_sensor(measurement, sensor_id):
-        t = int(time.time()) * second2nano
+        data = {key:float(value) for (key,value) in bottle.request.json.items()}
+        logger.info(f"{datetime.now()} - {sensor_id}: {data}")
+        
+        write_api = client.write_api(write_options=SYNCHRONOUS)
 
-        # extract calculated values
-        fields = dict_variable = {key:float(value) for (key,value) in bottle.request.json.items() if key != 'raw'}
-        logger.info(f"{datetime.now()} - {sensor_id}: {fields}")
-        item = {
-            "measurement": measurement,
-            "tags": {
-                "sensor": sensor_id
-            },
-            "time": t,
-            "fields": fields
-        }
-        client.write_points([item])
+        record = [influxdb_client.Point(measurement).tag("sensor", sensor_id).field(field,value) for (field,value) in data.items()]
+        write_api.write(bucket="smartcottage", org="smartcottage", record=record)
 
-        # extract raw data points
-        raw = bottle.request.json["raw"]
-        if len(raw):
-            items = [
-                {
-                    "measurement": measurement,
-                    "tags": {
-                        "sensor": "raw_" + sensor_id
-                    },
-                    "time": t + tdelta,
-                    "fields": {"value": float(value)}
-                } 
-                for (value, tdelta) 
-                in zip(bottle.request.json["raw"], itertools.count(0, 10_000_000))
-            ]
-            client.write_points(items)
 
     @app.route('/')
     def default_route():
@@ -104,4 +82,4 @@ def create_routes(app):
     @app.route('/<filename:re:.*>')    
     def server_static(filename):
         return bottle.static_file(filename, root='./web')
-
+    
