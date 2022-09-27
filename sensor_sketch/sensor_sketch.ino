@@ -46,11 +46,17 @@ void connect_wifi() {
 
   if (WiFi.status() == WL_CONNECTED)
   {
+    IPAddress gateway = WiFi.gatewayIP();
     logger.printTimecode();
-    logger.print("Ping test result: ");
+    logger.print("Ping ");
+    logger.print(gateway.toString());
+    logger.print(" result: ");
+    currentMillis = millis();
     if (pinger.Ping(WiFi.gatewayIP()))
     {
-      logger.println("succeed");
+      logger.print("succeed  (");
+      logger.print(millis() - currentMillis);
+      logger.println(" ms)");
       startWifiMillis = currentMillis;
       return;
     }
@@ -97,10 +103,30 @@ void upload_sensor(String const & st, String const & sh)
   HTTPClient http;
   http.begin(wifiClient, sensor_url);
   http.addHeader("Content-Type", "application/json");
+  currentMillis = millis();
   int httpResponseCode = http.PUT(body);
+  unsigned long httpResponseTime = millis() - currentMillis;
   http.end();
 
-  logger.println(httpResponseCode);
+  logger.print(httpResponseCode);
+  logger.print("  (");
+  logger.print(httpResponseTime);
+  logger.println(" ms)");
+
+  static int error_counter;
+  if (httpResponseCode == 200)
+  {
+    error_counter = 0;
+    return;
+  }
+  
+  if (++error_counter >= 3)
+  {
+    logger.printTimecode();
+    logger.println("Uploading Failed! Rebooting...");
+    delay(5000);
+    ESP.restart();
+  }  
 }
 
 void handleRoot() {
