@@ -1,3 +1,4 @@
+#include <NTPClient.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
@@ -6,10 +7,7 @@
 #include <ESP8266WebServer.h>
 #include <DHT.h>
 #include <Pinger.h>
-extern "C"
-{
-  #include <lwip/icmp.h> // needed for icmp packet definitions
-}
+
 #include "sma.h"
 #include "logger.h"
 #include "config.h"
@@ -19,25 +17,25 @@ extern "C"
 #define DHTPIN 2
 #define DHTTYPE DHT22
 
-DHT dht(DHTPIN, DHTTYPE);
+DHT                 dht(DHTPIN, DHTTYPE);
+WiFiClientSecure    wifiClient;
+WiFiUDP             ntpUDP;
+NTPClient           timeClient(ntpUDP);
+ESP8266WebServer    webServer(80);
 
-WiFiClientSecure wifiClient;
+const char*         ssid = SSID;
+const char*         pass = PASS;
+const char*         sensor_url = SENSOR_URL;
 
-ESP8266WebServer server(80);
+Logger<4096>        logger;
+Pinger              pinger;
 
-const char* ssid = SSID;
-const char* pass = PASS;
-const char* sensor_url = SENSOR_URL
-
-Logger<4096> logger;
-
-unsigned long startSensorMillis = millis();
-unsigned long startWifiMillis = ULONG_MAX;
-unsigned long currentMillis;
+unsigned long       startSensorMillis = millis();
+unsigned long       startWifiMillis = ULONG_MAX;
+unsigned long       currentMillis;
 const unsigned long samples = 10;
 const unsigned long rate = 10 * 60 * 1000 / samples;  // 10 minutes - 10 samples
 
-Pinger pinger;
 
 void connect_wifi() {
   currentMillis = millis();
@@ -47,8 +45,8 @@ void connect_wifi() {
   if (WiFi.status() == WL_CONNECTED)
   {
     IPAddress gateway = WiFi.gatewayIP();
-    logger.printTimecode();
-    logger.print("Ping ");
+    logger.print(timeClient.getFormattedTime());
+    logger.print(" Ping ");
     logger.print(gateway.toString());
     logger.print(" result: ");
     currentMillis = millis();
@@ -62,25 +60,27 @@ void connect_wifi() {
     }
     logger.println("failed !!!");
   }
-  
-  logger.printTimecode();
-  logger.print("Connecting to wifi: ");
+
+  logger.print(timeClient.getFormattedTime());
+  logger.print(" Connecting to wifi: ");
   logger.println(ssid);
   WiFi.disconnect();
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, pass);
   while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-    logger.printTimecode();
-    logger.println("Connection Failed! Rebooting...");
+    logger.print(timeClient.getFormattedTime());
+    logger.println(" Connection Failed! Rebooting...");
     delay(5000);
     ESP.restart();
   }
 
-  WiFi.setAutoReconnect(true);
-  WiFi.persistent(true);
-
-  logger.printTimecode();
-  logger.print("IP address: ");
+  //WiFi.setAutoReconnect(true);
+  //WiFi.persistent(true);
+  timeClient.begin();
+  timeClient.update();
+  
+  logger.print(timeClient.getFormattedTime());
+  logger.print(" IP address: ");
   logger.println(WiFi.localIP().toString());
   
   wifiClient.setInsecure();
@@ -92,11 +92,12 @@ void connect_wifi() {
   startWifiMillis = currentMillis;
 }
 
+
 void upload_sensor(String const & st, String const & sh)
 {
   String body = "{\"temperature\": " + st + ", \"humidity\": " + sh + "}";
-  logger.printTimecode();
-  logger.print("[send] ");
+  logger.print(timeClient.getFormattedTime());
+  logger.print(" [send] ");
   logger.print(body);
   logger.print(" --> ");
     
@@ -122,43 +123,48 @@ void upload_sensor(String const & st, String const & sh)
   
   if (++error_counter >= 3)
   {
-    logger.printTimecode();
-    logger.println("Uploading Failed! Rebooting...");
+    logger.print(timeClient.getFormattedTime());
+    logger.println(" Uploading Failed! Rebooting...");
     delay(5000);
     ESP.restart();
   }  
 }
 
+
 void handleRoot() {
-  server.send(200, "text/plain", logger.getData());
+  webServer.send(200, "text/plain", logger.getData());
 }
+
 
 void handleNotFound(){
-  server.send(404, "text/plain", "404: Not found");
+  webServer.send(404, "text/plain", "404: Not found");
 }
 
+
 void setup() {
-  server.on("/", HTTP_GET, handleRoot);
-  server.onNotFound(handleNotFound);
-  server.begin();
+  webServer.on("/", HTTP_GET, handleRoot);
+  webServer.onNotFound(handleNotFound);
+  webServer.begin();
 
   dht.begin();
   // dht needs 2 seconds to settle
   do {
-    delay(2000);
+    delay(2500);
   }
-  while (dht.readTemperature() > 80.);
+  while (dht.readTemperature() > 80.);  // sometimes even more...
 }
+
 
 void loop()
 {
   connect_wifi();
   if (WiFi.status() != WL_CONNECTED)
     return;
-    
+
   ArduinoOTA.handle();
-  server.handleClient();
-  
+  webServer.handleClient();
+  timeClient.update();
+
   static SMA<samples * 2> sma_tmp;
   static SMA<samples * 2> sma_hmd;
   static bool init;
@@ -175,9 +181,11 @@ void loop()
     float t = dht.readTemperature();
     float h = dht.readHumidity();
     
-    String message = "[read] t=" + String(t) + "; " + "h=" + String(h);
-    logger.printTimecode();
-    logger.println(message);
+    logger.print(timeClient.getFormattedTime());
+    logger.print(" [read] t=");
+    logger.print(t);
+    logger.print("; h=");
+    logger.println(h);
     
     t = sma_tmp(t * 10.) / 10.;
     h = sma_hmd(h * 10.) / 10.;

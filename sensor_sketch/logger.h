@@ -10,14 +10,6 @@ public:
     _pdata = _data;
   }
 
-  void printTimecode()
-  {
-    char buffer[20];
-    itoa(millis(), buffer, 10);    
-    _print(buffer);
-    _print(": ");
-  }
-
   void print(const char* msg)
   {
     _print(msg);
