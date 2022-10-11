@@ -12,7 +12,9 @@
 #include "logger.h"
 #include "config.h"
 
-#define OTA_Host_Name "ESP01-"SENSOR_NAME
+#define HOST_NAME "ESP01-"SENSOR_NAME
+
+#define VERSION "2022-10-02.01"
 
 #define DHTPIN 2
 #define DHTTYPE DHT22
@@ -20,7 +22,7 @@
 DHT                 dht(DHTPIN, DHTTYPE);
 WiFiClientSecure    wifiClient;
 WiFiUDP             ntpUDP;
-NTPClient           timeClient(ntpUDP);
+NTPClient           timeClient(ntpUDP, "europe.pool.ntp.org", 7200, 120000);  // +2h, update 2mins
 ESP8266WebServer    webServer(80);
 
 const char*         ssid = SSID;
@@ -37,6 +39,18 @@ const unsigned long samples = 10;
 const unsigned long rate = 10 * 60 * 1000 / samples;  // 10 minutes - 10 samples
 
 
+void restart() {
+  pinMode(LED_BUILTIN, OUTPUT);
+  for (int i = 0; i < 5; ++i) {
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(250);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(250);
+  }
+  ESP.restart();
+}
+
+
 void connect_wifi() {
   currentMillis = millis();
   if (currentMillis - startWifiMillis < 30000)
@@ -46,16 +60,16 @@ void connect_wifi() {
   {
     IPAddress gateway = WiFi.gatewayIP();
     logger.print(timeClient.getFormattedTime());
-    logger.print(" Ping ");
+    logger.print(" [ping] ");
     logger.print(gateway.toString());
     logger.print(" result: ");
     currentMillis = millis();
-    if (pinger.Ping(WiFi.gatewayIP()))
+    if (pinger.Ping(gateway))
     {
       logger.print("succeed  (");
       logger.print(millis() - currentMillis);
       logger.println(" ms)");
-      startWifiMillis = currentMillis;
+      startWifiMillis = currentMillis;       
       return;
     }
     logger.println("failed !!!");
@@ -66,28 +80,34 @@ void connect_wifi() {
   logger.println(ssid);
   WiFi.disconnect();
   WiFi.mode(WIFI_STA);
+  WiFi.setHostname(HOST_NAME);
   WiFi.begin(ssid, pass);
   while (WiFi.waitForConnectResult() != WL_CONNECTED) {
     logger.print(timeClient.getFormattedTime());
     logger.println(" Connection Failed! Rebooting...");
-    delay(5000);
-    ESP.restart();
+    restart();
   }
 
-  //WiFi.setAutoReconnect(true);
-  //WiFi.persistent(true);
+  WiFi.setAutoReconnect(true);
+  WiFi.persistent(true);
   timeClient.begin();
   timeClient.update();
   
   logger.print(timeClient.getFormattedTime());
-  logger.print(" IP address: ");
-  logger.println(WiFi.localIP().toString());
-  
+  logger.print(" IP=");
+  logger.print(WiFi.localIP().toString());
+  logger.print(" Mask=");
+  logger.print(WiFi.subnetMask().toString());
+  logger.print(" Gateway=");
+  logger.print(WiFi.gatewayIP().toString());
+  logger.print(" DNS=");
+  logger.println(WiFi.dnsIP().toString());
+
   wifiClient.setInsecure();
 
-  ArduinoOTA.setHostname(OTA_Host_Name);
+  ArduinoOTA.setHostname(HOST_NAME);
   ArduinoOTA.begin();
-  MDNS.begin(OTA_Host_Name);
+  MDNS.begin(HOST_NAME);
 
   startWifiMillis = currentMillis;
 }
@@ -125,16 +145,18 @@ void upload_sensor(String const & st, String const & sh)
   {
     logger.print(timeClient.getFormattedTime());
     logger.println(" Uploading Failed! Rebooting...");
-    delay(5000);
-    ESP.restart();
+    restart();
   }  
 }
 
 
 void handleRoot() {
-  webServer.send(200, "text/plain", logger.getData());
+  webServer.send(200, "text/plain; charset=UTF-8", logger.getData());
 }
 
+void handleVersion() {
+  webServer.send(200, "text/plain", VERSION);
+}
 
 void handleNotFound(){
   webServer.send(404, "text/plain", "404: Not found");
@@ -142,7 +164,12 @@ void handleNotFound(){
 
 
 void setup() {
+  logger.print(timeClient.getFormattedTime());
+  logger.print(" version=");
+  logger.println(VERSION);
+
   webServer.on("/", HTTP_GET, handleRoot);
+  webServer.on("/version", HTTP_GET, handleVersion);
   webServer.onNotFound(handleNotFound);
   webServer.begin();
 
@@ -184,8 +211,9 @@ void loop()
     logger.print(timeClient.getFormattedTime());
     logger.print(" [read] t=");
     logger.print(t);
-    logger.print("; h=");
-    logger.println(h);
+    logger.print("˚C h=");
+    logger.print(h);
+    logger.println("%");
     
     t = sma_tmp(t * 10.) / 10.;
     h = sma_hmd(h * 10.) / 10.;

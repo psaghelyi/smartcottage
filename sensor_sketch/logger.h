@@ -31,7 +31,8 @@ public:
 
   void println(String const& msg)
   {
-    println(msg.c_str());
+    print(msg);
+    print("\n");
   }
 
   void print(int i)
@@ -43,9 +44,34 @@ public:
 
   void println(int i)
   {
+    print(i);
+    print("\n"); 
+  }
+
+  void print(unsigned long int l)
+  {
     char buffer[20];
-    itoa(i,buffer,10);
-    println(buffer);    
+    ultoa(l,buffer,10);
+    print(buffer);
+  }
+
+  void println(unsigned long int l)
+  {
+    print(l);
+    print("\n"); 
+  }
+
+  void print(float f)
+  {
+    char buffer[20];
+    dtostrf(f, 1, 2, buffer);  // -12.34
+    print(buffer);
+  }
+
+  void println(float f)
+  {
+    print(f);
+    print("\n");
   }
 
   const char* getData() const
