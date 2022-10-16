@@ -1,0 +1,27 @@
+[Match]
+Name=br0
+
+[Network]
+Address=192.168.192.1/24
+DNS=192.168.192.48 1.1.1.1
+DHCPServer=true
+MulticastDNS=true
+
+LinkLocalAddressing=no
+LLDP=no
+EmitLLDP=no
+IPv6AcceptRA=no
+IPv6SendRA=no
+
+[Route]
+Gateway=192.168.192.48
+Destination=192.168.1.0/24
+
+[DHCPServer]
+PoolOffset=150
+PoolSize=50
+DefaultLeaseTimeSec=300s
+EmitDNS=yes
+DNS=192.168.192.48 192.168.1.1 1.1.1.1
+EmitRouter=yes
+Router=192.168.192.1
