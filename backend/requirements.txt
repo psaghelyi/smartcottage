@@ -1,0 +1,2 @@
+fastapi
+influxdb-client
