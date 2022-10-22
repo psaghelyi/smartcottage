@@ -12,4 +12,10 @@ COPY . /fastapi
 
 COPY ./web /web
 
+#COPY netrc /root/.netrc
+
+#RUN chown nobody:nogroup /root/.netrc
+
+ENV NETRC /nonexistent
+
 EXPOSE 80 443

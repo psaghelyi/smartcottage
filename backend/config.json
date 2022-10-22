@@ -20,5 +20,7 @@
             "module": "asgi",
             "callable": "app"
         }
-    }
+    },
+
+    "access_log": "/dev/stdout"
 }
