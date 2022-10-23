@@ -28,12 +28,13 @@ client: InfluxDBClientAsync
 write_api: WriteApiAsync
 query_api: QueryApiAsync
 
+
 @app.on_event('startup')
 async def startup_event():
     global client
     global write_api
     global query_api
-    
+
     logger.info(f"{datetime.now()} - starting up")
     while True:
         ready = False
@@ -57,9 +58,14 @@ async def shutdown_event():
     await client.close()
 
 
-@app.get("/")
+@app.get("/index.html")
 async def read_index():
     return FileResponse('/web/index.html')
+
+
+@app.get("/")
+async def read_root():
+    return await read_index()
 
 
 @app.get("/heartbeat")
@@ -73,18 +79,20 @@ async def get_sensor(sensor_id):
 
     start = timer()
 
-    p = {
+    params = {
         "_start": timedelta(days=-2),
         "_sensor": sensor_id
     }
 
-    tables = await query_api.query(f'''
+    query = f'''
         from(bucket:"{influxdb_bucket}") 
             |> range(start: _start)
             |> filter(fn: (r) => r["_measurement"] == "cottage")
             |> filter(fn: (r) => r["sensor"] == _sensor)
-    ''', params=p)
-    
+    '''
+
+    tables = await query_api.query(query=query, params=params)
+
     if not tables:
         return JSONResponse(content=jsonable_encoder({}))
 
@@ -102,16 +110,11 @@ async def get_sensor(sensor_id):
 
 @app.put('/sensor/{sensor_id}')
 async def put_sensor(sensor_id: str, request: Request):
-    json_body = await request.json()
-    data = {key:float(value) for (key,value) in json_body.items()}
-    logger.info(f"{datetime.now()} - {sensor_id}: {data}")
-    
-    record = [Point("cottage").tag("sensor", sensor_id).field(field,value) for (field,value) in data.items()]
-    await write_api.write(bucket=influxdb_bucket, org=influxdb_org, record=record)
+    await put_measurement("cottage", sensor_id, request)
 
 
-@app.put('/<measurement>/{sensor_id}')
-async def put_sensor(measurement: str, sensor_id: str, request: Request):
+@app.put('/{measurement}/{sensor_id}')
+async def put_measurement(measurement: str, sensor_id: str, request: Request):
     json_body = await request.json()
     data = {key:float(value) for (key,value) in json_body.items()}
     logger.info(f"{datetime.now()} - {sensor_id}: {data}")

@@ -22,5 +22,8 @@
         }
     },
 
-    "access_log": "/dev/stdout"
+    "access_log": {
+        "path": "/dev/stdout",
+        "format": "$time_local $remote_addr $host \"$request_line\" $status $body_bytes_sent \"$header_referer\" \"$header_user_agent\""
+    }
 }
