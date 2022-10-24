@@ -1,6 +1,5 @@
 #!/bin/bash
 
-docker container rm -f smartcottage
 docker run -d \
     --restart unless-stopped \
     --name smartcottage \

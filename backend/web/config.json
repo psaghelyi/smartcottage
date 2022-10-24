@@ -15,7 +15,7 @@
         "fastapi": {
             "type": "python 3.10",
             "processes": 4,
-            "path": "/fastapi",
+            "path": "/app",
             "home": "/usr/local",
             "module": "asgi",
             "callable": "app"

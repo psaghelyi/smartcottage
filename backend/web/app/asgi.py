@@ -18,7 +18,7 @@ influxdb_token = "fHy2mZrpErZMlshloWnhk6jMp14C4QPjyCgYYpR3S1nox1oLax3upiK5IdsUBh
 influxdb_org = "smartcottage"
 influxdb_bucket = "smartcottage"
 
-logger = logging.getLogger('smartcottage')
+logger = logging.getLogger('web')
 logging.basicConfig(level=logging.INFO)
 
 app = FastAPI()
@@ -60,7 +60,7 @@ async def shutdown_event():
 
 @app.get("/index.html")
 async def read_index():
-    return FileResponse('/web/index.html')
+    return FileResponse('/app/index.html')
 
 
 @app.get("/")
