@@ -1,4 +1,5 @@
 import logging
+from statsd import StatsClient
 from time import sleep
 from datetime import datetime, timedelta
 from timeit import default_timer as timer
@@ -21,41 +22,45 @@ influxdb_bucket = "smartcottage"
 logger = logging.getLogger('web')
 logging.basicConfig(level=logging.INFO)
 
+statsd = StatsClient('host.docker.internal', 8125, prefix='app')
+
 app = FastAPI()
 # app.mount("/", StaticFiles(directory="/web", html = True), name="web")
 
-client: InfluxDBClientAsync
+db_client: InfluxDBClientAsync
 write_api: WriteApiAsync
 query_api: QueryApiAsync
 
 
 @app.on_event('startup')
 async def startup_event():
-    global client
+    global db_client
     global write_api
     global query_api
 
-    logger.info(f"{datetime.now()} - starting up")
-    while True:
-        ready = False
-        try:
-            client = InfluxDBClientAsync(url="http://host.docker.internal:8086", token=influxdb_token, org=influxdb_org)
-            ready = await client.ping()
-        except:
-            pass
-        logger.info(f"{datetime.now()} - ready: {ready}")
-        if ready:
-            break
-        sleep(3)
+    with statsd.timer('startup'):
+        logger.info(f"{datetime.now()} - starting up")
+        while True:
+            ready = False
+            try:
+                db_client = InfluxDBClientAsync(url="http://host.docker.internal:8086", token=influxdb_token, org=influxdb_org)
+                ready = await db_client.ping()
+            except:
+                pass
+            logger.info(f"{datetime.now()} - ready: {ready}")
+            if ready:
+                break
+            sleep(3)
 
-    write_api = client.write_api()
-    query_api = client.query_api()
+        write_api = db_client.write_api()
+        query_api = db_client.query_api()
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     logger.info(f"{datetime.now()} - shutting down")
-    await client.close()
+    with statsd.timer('shutdown'):
+        await db_client.close()
 
 
 @app.get("/index.html")
@@ -75,42 +80,45 @@ async def heartbeat(request: Request):
 
 @app.get('/sensor/{sensor_id}')
 async def get_sensor(sensor_id):
-    logger.info(f"{datetime.now()} - get sensor: {sensor_id}")
+    with statsd.timer('get_sensor'):
+        logger.info(f"{datetime.now()} - get sensor: {sensor_id}")
 
-    start = timer()
+        start = timer()
 
-    params = {
-        "_start": timedelta(days=-2),
-        "_sensor": sensor_id
-    }
+        params = {
+            "_start": timedelta(days=-2),
+            "_sensor": sensor_id
+        }
 
-    query = f'''
-        from(bucket:"{influxdb_bucket}") 
-            |> range(start: _start)
-            |> filter(fn: (r) => r["_measurement"] == "cottage")
-            |> filter(fn: (r) => r["sensor"] == _sensor)
-    '''
+        query = f'''
+            from(bucket:"{influxdb_bucket}") 
+                |> range(start: _start)
+                |> filter(fn: (r) => r["_measurement"] == "cottage")
+                |> filter(fn: (r) => r["sensor"] == _sensor)
+        '''
 
-    tables = await query_api.query(query=query, params=params)
+        with statsd.timer('get_sensor_db'):
+            tables = await query_api.query(query=query, params=params)
 
-    if not tables:
-        return JSONResponse(content=jsonable_encoder({}))
+        if not tables:
+            return JSONResponse(content=jsonable_encoder({}))
 
-    table_humidity,table_temperature = tables
-    
-    rows = [{
-        "epoch": int(t["_time"].timestamp()),
-        "data": {"temperature": t["_value"], "humidity": h["_value"]}
-    } for (t,h) in zip(table_temperature.records,table_humidity.records)]
+        table_humidity,table_temperature = tables
+        
+        rows = [{
+            "epoch": int(t["_time"].timestamp()),
+            "data": {"temperature": t["_value"], "humidity": h["_value"]}
+        } for (t,h) in zip(table_temperature.records,table_humidity.records)]
 
-    logger.info(f"{datetime.now()} - get sensor: {sensor_id} [{timer() - start}]")
+        logger.info(f"{datetime.now()} - get sensor: {sensor_id} [{timer() - start}]")
 
-    return JSONResponse(content=jsonable_encoder(rows))
+        return JSONResponse(content=jsonable_encoder(rows))
 
 
 @app.put('/sensor/{sensor_id}')
 async def put_sensor(sensor_id: str, request: Request):
-    await put_measurement("cottage", sensor_id, request)
+    with statsd.timer('put_sensor'):
+        await put_measurement("cottage", sensor_id, request)
 
 
 @app.put('/{measurement}/{sensor_id}')
