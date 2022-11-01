@@ -128,4 +128,5 @@ async def put_measurement(measurement: str, sensor_id: str, request: Request):
     logger.info(f"{datetime.now()} - {sensor_id}: {data}")
     
     record = [Point(measurement).tag("sensor", sensor_id).field(field,value) for (field,value) in data.items()]
-    await write_api.write(bucket=influxdb_bucket, org=influxdb_org, record=record)
+    with statsd.timer('put_sensor_db'):
+        await write_api.write(bucket=influxdb_bucket, org=influxdb_org, record=record)
