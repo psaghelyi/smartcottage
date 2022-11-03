@@ -1,6 +1,8 @@
 #!/bin/bash
 
-docker run \
+VERSION=v0.45.0
+
+sudo docker run \
   --volume=/:/rootfs:ro \
   --volume=/var/run:/var/run:ro \
   --volume=/sys:/sys:ro \
@@ -11,4 +13,4 @@ docker run \
   --name=cadvisor \
   --privileged \
   --device=/dev/kmsg \
-  cadvisor
+  gcr.io/cadvisor/cadvisor:$VERSION

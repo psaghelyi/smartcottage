@@ -22,7 +22,7 @@ scrape_configs:
       - targets: ['192.168.192.1:9100', 'host.docker.internal:9100']
 
   # Example job for cadvisor
-  # - job_name: 'cadvisor'
-  #   static_configs:
-  #     - targets: ['cadvisor:8080']
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['host.docker.internal:8080']
   
