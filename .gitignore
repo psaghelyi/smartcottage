@@ -136,3 +136,5 @@ dmypy.json
 .influxdb/
 .grafana/
 .prometheus/
+.config/
+.cache/
