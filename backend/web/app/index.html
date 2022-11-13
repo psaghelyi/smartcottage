@@ -99,10 +99,9 @@
               xAxisKey: 'dt',
               yAxisKey: 'data.' + dataField
             },
-            plugins: {
-              tooltip: {
-                //enabled: false
-              },
+            interaction: {
+              intersect: false,
+              mode: 'index',
             },
             scales: {
               x: {
@@ -145,7 +144,7 @@
                 pointRadius: 1
               },
               {
-                label: 'Györök-háló',
+                label: 'Györök-pince',
                 data: sensorData.s3,
                 borderColor: 'SandyBrown',
                 backgroundColor: 'Maroon',
@@ -179,10 +178,9 @@
               xAxisKey: 'dt',
               yAxisKey: 'data.' + dataField
             },
-            plugins: {
-              tooltip: {
-                //enabled: false
-              },
+            interaction: {
+              intersect: false,
+              mode: 'index',
             },
             scales: {
               x: {
