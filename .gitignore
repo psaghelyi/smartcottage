@@ -138,3 +138,4 @@ dmypy.json
 .prometheus/
 .config/
 .cache/
+backend/web/app/secrets.py
