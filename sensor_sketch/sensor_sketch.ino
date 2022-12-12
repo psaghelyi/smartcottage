@@ -8,13 +8,13 @@
 #include <DHT.h>
 #include <Pinger.h>
 
-#include "sma.h"
+#include "avg.h"
 #include "logger.h"
 #include "config.h"
 
 #define HOST_NAME "ESP01-"SENSOR_NAME
 
-#define VERSION "2022-10-02.01"
+#define VERSION "2022-12-12.v3"
 
 #define DHTPIN 2
 #define DHTTYPE DHT22
@@ -88,8 +88,8 @@ void connect_wifi() {
     restart();
   }
 
-  WiFi.setAutoReconnect(true);
-  WiFi.persistent(true);
+  //WiFi.setAutoReconnect(true);
+  //WiFi.persistent(true);
   timeClient.begin();
   timeClient.update();
   
@@ -192,13 +192,13 @@ void loop()
   webServer.handleClient();
   timeClient.update();
 
-  static SMA<samples * 2> sma_tmp;
-  static SMA<samples * 2> sma_hmd;
+  static AVG<samples * 2> avg_tmp;
+  static AVG<samples * 2> avg_hmd;
   static bool init;
   if (!init)
   {
-    sma_tmp.reset(dht.readTemperature() * 10.);
-    sma_hmd.reset(dht.readHumidity() * 10.);
+    avg_tmp.reset(dht.readTemperature());
+    avg_hmd.reset(dht.readHumidity());
     init = true;
   }
 
@@ -215,10 +215,10 @@ void loop()
     logger.print(h);
     logger.println("%");
     
-    t = sma_tmp(t * 10.) / 10.;
-    h = sma_hmd(h * 10.) / 10.;
+    t = avg_tmp(t);
+    h = avg_hmd(h);
     
-    static int counter;
+    static int counter = samples - 1;
     if (++counter == samples)
     {
       String st = isnan(t) ? String("") : String(t);
