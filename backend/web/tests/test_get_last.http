@@ -1,0 +1,1 @@
+GET https://localhost:12345/api/last/cottage/s1 HTTP/1.1
