@@ -1,0 +1,1 @@
+GET https://localhost:12345/api/heartbeat HTTP/1.1

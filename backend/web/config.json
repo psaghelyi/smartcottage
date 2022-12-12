@@ -1,0 +1,29 @@
+{
+    "listeners": {
+        "*:80": {
+            "pass": "applications/fastapi"
+        },
+        "*:443": {
+            "pass": "applications/fastapi",
+            "tls": {
+                "certificate": "bundle"
+            }
+        }
+    },
+
+    "applications": {
+        "fastapi": {
+            "type": "python 3.10",
+            "processes": 4,
+            "path": "/app",
+            "home": "/usr/local",
+            "module": "asgi",
+            "callable": "app"
+        }
+    },
+
+    "access_log": {
+        "path": "/dev/stdout",
+        "format": "$time_local $remote_addr $host \"$request_line\" $status $body_bytes_sent \"$header_referer\" \"$header_user_agent\""
+    }
+}

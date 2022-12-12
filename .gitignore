@@ -133,3 +133,9 @@ dmypy.json
 *.pem
 
 .cert/
+.influxdb/
+.grafana/
+.prometheus/
+.config/
+.cache/
+backend/web/app/secrets.py

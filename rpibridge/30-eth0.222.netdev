@@ -1,0 +1,6 @@
+[NetDev]
+Name=eth0.222
+Kind=vlan
+
+[VLAN]
+Id=222
