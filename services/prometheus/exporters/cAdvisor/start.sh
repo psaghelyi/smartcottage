@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=v0.45.0
+VERSION=v0.46.0
 
 sudo docker run -d \
   --restart unless-stopped \
