@@ -8,13 +8,14 @@
 #include <DHT.h>
 #include <Pinger.h>
 
-#include "avg.h"
 #include "logger.h"
+#include "avg.h"
 #include "config.h"
 
-#define HOST_NAME "ESP01-"SENSOR_NAME
 
-#define VERSION "2022-12-12.v3"
+#define HOST_NAME "ESP01-" SENSOR_NAME
+
+#define VERSION "2023-02-05"
 
 #define DHTPIN 2
 #define DHTTYPE DHT22
@@ -40,6 +41,7 @@ const unsigned long rate = 10 * 60 * 1000 / samples;  // 10 minutes - 10 samples
 
 
 void restart() {
+  Serial.end();
   pinMode(LED_BUILTIN, OUTPUT);
   for (int i = 0; i < 5; ++i) {
     digitalWrite(LED_BUILTIN, LOW);
@@ -58,6 +60,14 @@ void connect_wifi() {
 
   if (WiFi.status() == WL_CONNECTED)
   {
+    int rssi = WiFi.RSSI();
+    logger.print(timeClient.getFormattedTime());
+    logger.print(" [signal] RSSI=");
+    logger.print(rssi);
+    logger.print(" (");
+    logger.print(min(max(2 * (rssi + 100), 0), 100));
+    logger.println("%)");
+
     IPAddress gateway = WiFi.gatewayIP();
     logger.print(timeClient.getFormattedTime());
     logger.print(" [ping] ");
@@ -106,6 +116,7 @@ void connect_wifi() {
   wifiClient.setInsecure();
 
   ArduinoOTA.setHostname(HOST_NAME);
+  //ArduinoOTA.setPassword("deadmeet");
   ArduinoOTA.begin();
   MDNS.begin(HOST_NAME);
 
@@ -164,10 +175,13 @@ void handleNotFound(){
 
 
 void setup() {
+  Serial.begin(115200);
+  delay(1000);
+
   logger.print(timeClient.getFormattedTime());
   logger.print(" version=");
   logger.println(VERSION);
-
+  
   webServer.on("/", HTTP_GET, handleRoot);
   webServer.on("/version", HTTP_GET, handleVersion);
   webServer.onNotFound(handleNotFound);
@@ -190,44 +204,47 @@ void loop()
 
   ArduinoOTA.handle();
   webServer.handleClient();
+  MDNS.update();
   timeClient.update();
 
-  static AVG<samples * 2> avg_tmp;
-  static AVG<samples * 2> avg_hmd;
-  static bool init;
-  if (!init)
-  {
-    avg_tmp.reset(dht.readTemperature());
-    avg_hmd.reset(dht.readHumidity());
-    init = true;
-  }
-
   currentMillis = millis();
-  if (currentMillis - startSensorMillis >= rate)
-  { 
-    float t = dht.readTemperature();
-    float h = dht.readHumidity();
-    
-    logger.print(timeClient.getFormattedTime());
-    logger.print(" [read] t=");
-    logger.print(t);
-    logger.print("˚C h=");
-    logger.print(h);
-    logger.println("%");
-    
+  if (currentMillis - startSensorMillis < rate)
+    return;
+
+  static AVG<samples> avg_tmp;
+  static AVG<samples> avg_hmd;
+  static bool isInitialised;
+
+  float t = dht.readTemperature();
+  float h = dht.readHumidity();
+  
+  logger.print(timeClient.getFormattedTime());
+  logger.print(" [read] t=");
+  logger.print(t);
+  logger.print("˚C h=");
+  logger.print(h);
+  logger.println("%");
+  
+  if (!isInitialised)
+  {
+    avg_tmp.reset(t);
+    avg_hmd.reset(h);
+    isInitialised = true;
+  } else 
+  {
     t = avg_tmp(t);
     h = avg_hmd(h);
-    
-    static int counter = samples - 1;
-    if (++counter == samples)
-    {
-      String st = isnan(t) ? String("") : String(t);
-      String sh = isnan(h) ? String("") : String(h);
-      upload_sensor(st, sh);
-      //disconnect_wifi();
-      counter = 0;
-    }
-    
-    startSensorMillis = currentMillis;
   }
+
+  static int counter = samples - 1;
+  if (++counter == samples)
+  {
+    String st = isnan(t) ? String("") : String(t);
+    String sh = isnan(h) ? String("") : String(h);
+    upload_sensor(st, sh);
+    //disconnect_wifi();
+    counter = 0;
+  }
+  
+  startSensorMillis = currentMillis;
 }
