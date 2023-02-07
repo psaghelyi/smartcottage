@@ -6,4 +6,4 @@ docker run -d \
     --user $(id -u) \
     --name influxdb2 \
     -v $PWD/.influxdb:/var/lib/influxdb2 \
-    influxdb:2.6
+    influxdb:latest
