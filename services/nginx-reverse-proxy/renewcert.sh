@@ -1,0 +1,8 @@
+#!/bin/bash
+
+docker run \
+  --name=certbot \
+  --network=host \
+  -v $PWD/.certbot/www/:/var/www/certbot/:rw \
+  -v $PWD/.certbot/conf/:/etc/letsencrypt/:rw \
+  certbot/certbot:arm64v8-latest renew

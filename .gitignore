@@ -132,7 +132,7 @@ dmypy.json
 *.db
 *.pem
 
-.cert/
+.certbot/
 .influxdb/
 .grafana/
 .prometheus/
