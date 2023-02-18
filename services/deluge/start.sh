@@ -2,13 +2,14 @@
 
 docker run -d \
   --name=deluge \
+  --pull=always \
+  --restart unless-stopped \
   -e PUID=1000 \
   -e PGID=1000 \
   -e TZ=Europe/Budapest \
   --net host \
   -v deluge-config:/config \
   -v /mnt/sda1/Downloads:/downloads \
-  --restart unless-stopped \
   lscr.io/linuxserver/deluge:latest
 
 

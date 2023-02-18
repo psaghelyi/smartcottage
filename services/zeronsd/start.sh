@@ -1,11 +1,9 @@
 #!/bin/bash
 
-ID=$(id -u)
-
 docker run -d \
-    --restart unless-stopped \
     --name zeronsd \
+    --restart unless-stopped \
     --net host \
     -v /var/lib/zerotier-one/authtoken.secret:/authtoken.secret \
-    -v $HOME/.zeronsd/token.txt:/token.txt \
-    zerotier/zeronsd start -s /authtoken.secret -t /token.txt d3ecf5726d92fd9c
+    -v /home/pi/.token:/token.txt \
+    psaghelyi/zeronsd start -s /authtoken.secret -t /token.txt -d home.arpa d3ecf5726d92fd9c

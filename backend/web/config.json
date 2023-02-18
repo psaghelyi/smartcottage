@@ -2,12 +2,6 @@
     "listeners": {
         "*:80": {
             "pass": "applications/fastapi"
-        },
-        "*:443": {
-            "pass": "applications/fastapi",
-            "tls": {
-                "certificate": "bundle"
-            }
         }
     },
 

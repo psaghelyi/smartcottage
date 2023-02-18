@@ -3,9 +3,10 @@
 ID=$(id -u)
 
 docker run -d \
+    --name grafana \
+    --pull=always \
     --restart unless-stopped \
     -p 3000:3000 \
-    --name grafana \
     --add-host host.docker.internal:host-gateway \
     --user $ID \
     -v $PWD/.grafana:/var/lib/grafana \

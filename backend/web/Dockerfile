@@ -6,8 +6,6 @@ RUN pip install -r /app/requirements.txt
 
 COPY config.json /docker-entrypoint.d/config.json
 
-COPY .cert/bundle.pem /docker-entrypoint.d/bundle.pem
-
 COPY app /app/
 
 #COPY netrc /root/.netrc
