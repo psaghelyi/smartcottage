@@ -5,7 +5,8 @@ docker run -d \
     --pull=always \
     --restart=unless-stopped \
     --env-file $PWD/.env \
-    -v bitwarden-data:/data/ \
+    --user=$(id -u):$(id -g) \
+    -v $PWD/.bitwarden-data:/data/ \
     -p 127.0.0.1:8880:80 \
     -p 127.0.0.1:3012:3012 \
     vaultwarden/server:latest

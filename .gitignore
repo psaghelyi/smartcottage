@@ -132,10 +132,10 @@ dmypy.json
 *.db
 *.pem
 
-.certbot/
-.influxdb/
-.grafana/
-.prometheus/
+.*-data/
+.*-config/
+.*-cache/
 .config/
-.cache/
+
+
 backend/web/app/secrets.py

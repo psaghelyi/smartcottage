@@ -1,9 +1,9 @@
 #!/bin/bash
 
-docker run \
-  --name=certbot \
+docker run -it --rm \
+  --name=certbot-renew \
   --network=host \
   --pull=always \
-  -v $PWD/.certbot/www/:/var/www/certbot/:rw \
-  -v $PWD/.certbot/conf/:/etc/letsencrypt/:rw \
+  -v $PWD/.config/www/:/var/www/certbot/:rw \
+  -v $PWD/.config/conf/:/etc/letsencrypt/:rw \
   certbot/certbot:arm64v8-latest renew
