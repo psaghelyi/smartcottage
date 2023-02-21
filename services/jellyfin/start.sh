@@ -12,4 +12,5 @@ docker run -d \
     --volume $PWD/.jellyfin-config:/config \
     --volume $PWD/.jellyfin-cache:/cache \
     --volume /mnt/sda1/Media:/media \
+    --volume /mnt/sda1/Downloads/Completed:/Completed \
     jellyfin/jellyfin:latest
