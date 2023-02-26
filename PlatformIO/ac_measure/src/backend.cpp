@@ -31,16 +31,16 @@ void Backend::WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info)
 {
     Serial.println("Disconnected from WiFi access point");
     Serial.print("WiFi lost connection. Reason: ");
-    Serial.println(info.disconnected.reason);
+    Serial.println(info.info.wifi_sta_disconnected.reason);
     Serial.println("Trying to Reconnect");
     WiFi.begin(_ssid, _password);
 }
 
 void Backend::connect_wifi()
 {
-    WiFi.onEvent(WiFiStationConnected, SYSTEM_EVENT_STA_CONNECTED);
-    WiFi.onEvent(WiFiGotIP, SYSTEM_EVENT_STA_GOT_IP);
-    WiFi.onEvent(WiFiStationDisconnected, SYSTEM_EVENT_STA_DISCONNECTED);
+    WiFi.onEvent(WiFiStationConnected, ARDUINO_EVENT_WIFI_STA_CONNECTED);
+    WiFi.onEvent(WiFiGotIP, ARDUINO_EVENT_WIFI_STA_GOT_IP);
+    WiFi.onEvent(WiFiStationDisconnected, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 
     if (WiFi.status() == WL_CONNECTED)
         return;
