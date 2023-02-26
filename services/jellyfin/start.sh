@@ -4,7 +4,7 @@ docker run -d \
     --name jellyfin \
     --pull=always \
     --restart=unless-stopped \
-    --user $(id -u) \
+    --user $(id -u):$(id -g) \
     --net=host \
     --device=/dev/video10:/dev/video10 \
     --device=/dev/video11:/dev/video11 \
