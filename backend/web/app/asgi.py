@@ -2,7 +2,7 @@ import logging
 from statsd import StatsClient
 from time import sleep
 from datetime import datetime, timedelta
-from asyncio import create_task
+from asyncio import create_task, gather
 from aiohttp import ClientSession
 
 from influxdb_client import Point
@@ -159,20 +159,72 @@ async def put_measurement(measurement: str, sensor_id: str, request: Request):
 
 
 
+async def homeassistant_post(session, payload):
+    url = f'http://192.168.192.1:8123/api/states/sensor.{payload["attributes"]["friendly_name"]}'
+    headers = { "Authorization": f"Bearer {homeassistant_token}"}
+    async with session.post(url, json=payload, headers=headers) as resp:
+        return await resp.text()
+
+
+'''
+    this is a fire and forget approach of forwarding measurements to HomeAssistant
+'''
 async def homeassistant_send(measurement, sensor_id, data):
+    payloads = []
+    if "temperature" in data:
+        payloads.append({
+            "state": data["temperature"],
+            "attributes": {
+                "state_class": "measurement",
+                "device_class": "temperature",
+                "unit_of_measurement": "°C",
+                "friendly_name": f"{sensor_id}_temperature"
+            }
+        })
+    if "humidity" in data:
+        payloads.append({
+            "state": data["humidity"],
+            "attributes": {
+                "state_class": "measurement",
+                "device_class": "humidity",
+                "unit_of_measurement": "%",
+                "friendly_name": f"{sensor_id}_humidity"
+            }
+        })
+    if "pm1p0" in data:
+        payloads.append({
+            "state": data["pm1p0"],
+            "attributes": {
+                "state_class": "measurement",
+                "device_class": "pm1",
+                "unit_of_measurement": "µg/m³",
+                "friendly_name": f"{sensor_id}_pm1p0"
+            }
+        })
+    if "pm2p5" in data:
+        payloads.append({
+            "state": data["pm2p5"],
+            "attributes": {
+                "state_class": "measurement",
+                "device_class": "pm25",
+                "unit_of_measurement": "µg/m³",
+                "friendly_name": f"{sensor_id}_pm2p5"
+            }
+        })
+    if "pm10p0" in data:
+        payloads.append({
+            "state": data["pm10p0"],
+            "attributes": {
+                "state_class": "measurement",
+                "device_class": "pm10",
+                "unit_of_measurement": "µg/m³",
+                "friendly_name": f"{sensor_id}_pm10p0"
+            }
+        })
+
     async with ClientSession() as session:
-        url = f'http://192.168.192.1:8123/api/states/sensor.{sensor_id}'
-        headers = { "Authorization": f"Bearer {homeassistant_token}"}
-        payload = {
-                    "state": data["temperature"],
-                    "attributes": {
-                        "unit_of_measurement": "°C", 
-                        "friendly_name": f"{measurement}/{sensor_id}"
-                    }
-                }
-        async with session.post(url, json=payload, headers=headers) as resp:
-            response = await resp.text()
-            logger.info(f"{datetime.now()} - send measurement: {response}")
+        responses = await gather(*[homeassistant_post(session, payload) for payload in payloads])
+        logger.info(f"{datetime.now()} - send measurements: {responses}")
 
 
 # deprecated
