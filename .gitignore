@@ -132,4 +132,9 @@ dmypy.json
 *.db
 *.pem
 
-.cert/
+# volumes
+.*-*/
+.config/
+
+
+backend/web/app/secrets.py

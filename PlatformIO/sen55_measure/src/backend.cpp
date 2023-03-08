@@ -1,43 +1,77 @@
 #include "backend.h"
+#include "config.h"
 
 #include <HTTPClient.h>
 
 // const char Backend::_ssid[] = "TP-LINK_M5250_30228B";
 // const char Backend::_password[] = "21275721";
-const char Backend::_ssid[] = "DHARMA_NET";
-const char Backend::_password[] = "JuanValdes5";
-const char Backend::_sensor_url[] = "https://psaghelyi.ddns.net:12345/power/v1";
+const char Backend::_ssid[] = SSID;
+const char Backend::_password[] = PASS;
+const char Backend::_sensor_url[] = SENSOR_URL;
 
 WiFiClientSecure Backend::_wifiClient;
 
-Backend::Backend()
+Backend::Backend(const char *hostname)
 {
     // delete old config
     WiFi.disconnect(true);
+    WiFi.mode(WIFI_STA);
+    WiFi.setHostname(hostname);
 }
 
 void Backend::WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info)
 {
+    Serial.print(millis());
+    Serial.print(": ");
     Serial.println("Connected to AP successfully!");
+    Serial.print(millis());
+    Serial.print(": ");
+    Serial.print("SSID: ");
+    Serial.print((char*)info.wifi_sta_connected.ssid);
+    Serial.print(" Channel: ");
+    Serial.println(info.wifi_sta_connected.channel);
 }
 
 void Backend::WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info)
 {
+    Serial.print(millis());
+    Serial.print(": ");
     Serial.print("IP address: ");
-    Serial.println(WiFi.localIP());
+    Serial.print(IPAddress(info.got_ip.ip_info.ip.addr).toString());
+    Serial.print(" netmask: ");
+    Serial.print(IPAddress(info.got_ip.ip_info.netmask.addr).toString());
+    Serial.print(" GW address: ");
+    Serial.println(IPAddress(info.got_ip.ip_info.gw.addr).toString());
 }
 
 void Backend::WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info)
 {
+    Serial.print(millis());
+    Serial.print(": ");
     Serial.println("Disconnected from WiFi access point");
+    Serial.print(millis());
+    Serial.print(": ");
     Serial.print("WiFi lost connection. Reason: ");
-    Serial.println(info.info.wifi_sta_disconnected.reason);
-    Serial.println("Trying to Reconnect");
-    WiFi.begin(_ssid, _password);
+    Serial.println(info.wifi_sta_disconnected.reason);
+    Serial.print(millis());
+    Serial.print(": ");
+    Serial.print("Trying to reconnect...");
+    if (!WiFi.reconnect())
+    {
+
+        Serial.println("Failed.");
+        Serial.println("Restarting...");
+        delay(5000);
+        ESP.restart();
+    }
+    Serial.println("Succeeded.");
 }
 
 void Backend::connect_wifi()
 {
+    WiFi.disconnect(true);
+    delay(1000);
+
     WiFi.onEvent(WiFiStationConnected, ARDUINO_EVENT_WIFI_STA_CONNECTED);
     WiFi.onEvent(WiFiGotIP, ARDUINO_EVENT_WIFI_STA_GOT_IP);
     WiFi.onEvent(WiFiStationDisconnected, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
@@ -45,15 +79,17 @@ void Backend::connect_wifi()
     if (WiFi.status() == WL_CONNECTED)
         return;
 
-    Serial.println("Connecting to wifi: ");
+    Serial.print(millis());
+    Serial.print(": ");
+    Serial.print("Connecting to wifi: ");
     Serial.println(_ssid);
     Serial.flush();
     WiFi.begin(_ssid, _password);
-    while (WiFi.status() != WL_CONNECTED)
+    if (WiFi.waitForConnectResult() != WL_CONNECTED)
     {
-        delay(500);
-        Serial.print(".");
-        Serial.flush();
+        Serial.println("Restarting...");
+        delay(5000);
+        ESP.restart();
     }
 
     _wifiClient.setInsecure();

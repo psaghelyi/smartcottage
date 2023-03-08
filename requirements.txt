@@ -1,6 +1,0 @@
-requests
-bottle
-gunicorn
-pytz
-matplotlib
-influxdb-client
