@@ -9,7 +9,7 @@
 #include "sen55.h"
 
 #define HOST_NAME "ESP32-" SENSOR_NAME
-#define VERSION "2023.02.25"
+#define VERSION "2023.03.09"
 
 Backend     backend(HOST_NAME);
 Sen55       sen55;
@@ -21,7 +21,7 @@ const unsigned long samples = 10;
 const unsigned long rate = 10 * 60 * 1000 / samples;  // 10 minutes - 10 samples
 
 void handleRoot() {
-  webServer.send(200, "application/json; charset=UTF-8", sen55.read());
+  webServer.send(200, "application/json; charset=UTF-8", sen55.dump());
 }
 
 void handleVersion() {
@@ -91,8 +91,13 @@ void loop()
         if (currentMillis - startSensorMillis < rate)
     return;
 
+    static int counter = samples - 1;
     String data = sen55.read();
-    backend.upload(data.c_str());
+    if (++counter == samples)
+    {
+      backend.upload(data);
+      counter = 0;
+    }
 
     startSensorMillis = currentMillis;
 }

@@ -187,6 +187,13 @@ String Sen55::read()
         return errorMessage;
     }
 
+    massConcentrationPm1p0 = _avg_pm1p0(massConcentrationPm1p0);
+    massConcentrationPm2p5 = _avg_pm2p5(massConcentrationPm2p5);
+    massConcentrationPm4p0 = _avg_pm4p0(massConcentrationPm4p0);
+    massConcentrationPm10p0 = _avg_pm10p0(massConcentrationPm10p0);
+    ambientHumidity = _avg_humidity(ambientHumidity);
+    ambientTemperature = _avg_temperature(ambientTemperature);
+
     String response ("{\n");
     response += "  \"pm1p0\": " + String(massConcentrationPm1p0) + ",\n";
     response += "  \"pm2p5\": " + String(massConcentrationPm2p5) + ",\n";
@@ -201,5 +208,29 @@ String Sen55::read()
     Serial.print(millis());
     Serial.println(": sensor read:");
     Serial.println(response);
+
+    return response;
+}
+
+String Sen55::dump()
+{
+    String response("[\n");
+    for (int i = 0; i < N; ++i)
+    {
+        response += "  {\n";
+        response += "    \"pm1p0\": " + String(_avg_pm1p0[i]) + ",\n";
+        response += "    \"pm2p5\": " + String(_avg_pm2p5[i]) + ",\n";
+        response += "    \"pm4p0\": " + String(_avg_pm4p0[i]) + ",\n";
+        response += "    \"pm10p0\": " + String(_avg_pm10p0[i]) + ",\n";
+        response += "    \"humidity\": " + String(_avg_humidity[i]) + ",\n";
+        response += "    \"temperature\": " + String(_avg_temperature[i]) + "\n";
+        response += "  },\n";
+    }
+    response.remove(response.length() - 2);
+    response += "\n]";
+    Serial.print(millis());
+    Serial.println(": sensor dump:");
+    Serial.println(response);
+
     return response;
 }
