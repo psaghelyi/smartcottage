@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "Arduino/sensor_sketch"
+		},
+		{
+			"path": "PlatformIO/ac_measure"
+		},
+		{
+			"path": "PlatformIO/sen55_measure"
+		},
+		{
+			"path": "PlatformIO/dht22_measure"
+		}
+	],
+	"settings": {}
+}

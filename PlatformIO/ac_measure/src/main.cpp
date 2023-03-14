@@ -12,7 +12,7 @@
 
 static Backend backend;
 static Sensor sensor1, sensor2, *psensor = &sensor1;
-static Payload payload1, payload2, *ppayload = &payload1;
+static Payload<Backend> payload1, payload2, *ppayload = &payload1;
 static bool do_upload = false;
 
 static void debug_print(String s)
