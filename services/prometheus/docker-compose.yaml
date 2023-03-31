@@ -3,11 +3,13 @@ version: '3.8'
 networks:
   monitoring:
     driver: bridge
+
+volumes:
+  prometheus-data:
     
 services:
   node-exporter:
     image: quay.io/prometheus/node-exporter:latest
-    container_name: node-exporter
     restart: unless-stopped
     pid: host
     privileged: true
@@ -27,7 +29,6 @@ services:
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:v0.47.1
-    container_name: cadvisor
     restart: unless-stopped
     pid: host
     privileged: true
@@ -49,7 +50,6 @@ services:
 
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:0.10.0
-    container_name: nginx-exporter
     restart: unless-stopped
     command:
       - '-nginx.scrape-uri=http://host.docker.internal:88/stub_status'
@@ -62,11 +62,12 @@ services:
 
   prometheus:
     image: prom/prometheus:latest
-    container_name: prometheus
     restart: unless-stopped
     volumes:
+      - prometheus-data:/prometheus
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     command:
+      - '--storage.tsdb.path=/prometheus'
       - '--config.file=/etc/prometheus/prometheus.yml'
     ports:
       - "9090:9090"

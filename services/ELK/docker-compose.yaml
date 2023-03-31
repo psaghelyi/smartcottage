@@ -1,0 +1,75 @@
+version: '3.8'
+
+networks:
+  logging:
+    driver: bridge
+
+volumes:
+  elasticsearch-data:
+  kibana-data:
+
+services:
+  elasticsearch:
+    image: arm64v8/elasticsearch:8.6.2
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    environment:
+      - "discovery.type=single-node"
+      - "xpack.license.self_generated.type=basic"
+      - "path.data=/usr/share/elasticsearch/data"
+      - "cluster.name=es-docker"
+      - "node.name=node1"
+      - "bootstrap.memory_lock=true"
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - "xpack.security.enabled=false"
+    restart: unless-stopped
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    mem_limit: 2g
+    ports:
+      - 9200:9200
+    networks:
+      - logging
+
+  kibana:
+    image: arm64v8/kibana:8.6.2
+    volumes:
+      - kibana-data:/usr/share/kibana/data
+    environment:
+      - "PATH_DATA=/usr/share/kibana/data"
+    ports:
+      - 5601:5601
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://localhost:12201"
+        tag: "kibana"
+    networks:
+      - logging
+    depends_on:
+      - elasticsearch
+      - logstash
+    restart: unless-stopped
+    mem_limit: 1g
+
+  logstash:
+    image: arm64v8/logstash:8.6.2
+    volumes:
+      - .:/etc/logstash
+    command: logstash -f /etc/logstash/logstash.conf
+    ports:
+      - 12201:12201/udp
+    networks:
+      - logging
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+    environment:
+      - "LS_JAVA_OPTS=-Xmx1512m -Xms512m"
+    mem_limit: 1g
+    
