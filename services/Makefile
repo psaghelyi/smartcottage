@@ -1,32 +1,12 @@
 all: prometheus bitwarden deluge filebrowser grafana jellyfin pigallery2 portainer nginx-reverse-proxy
 
-prometheus: stop_prometheus start_prometheus exporters
-
-exporters: stop_cadvisor start_cadvisor stop_node_exporter start_node_exporter stop_nginx_exporter start_nginx_exporter
-
-stop_cadvisor:
-	cd prometheus/exporters/cAdvisor; ./stop.sh
-
-start_cadvisor:
-	cd prometheus/exporters/cAdvisor; ./start.sh
-
-stop_node_exporter:
-	cd prometheus/exporters/node_exporter; ./stop.sh
-
-start_node_exporter:
-	cd prometheus/exporters/node_exporter; ./start.sh
-
-stop_nginx_exporter:
-	cd prometheus/exporters/nginx_exporter; ./stop.sh
-
-start_nginx_exporter:
-	cd prometheus/exporters/nginx_exporter; ./start.sh
+prometheus: stop_prometheus start_prometheus
 
 stop_prometheus:
-	cd prometheus; ./stop.sh
+	cd prometheus; docker compose down
 
 start_prometheus:
-	cd prometheus; ./start.sh
+	cd prometheus; docker compose up -d
 
 bitwarden: stop_bitwarden start_bitwarden
 
