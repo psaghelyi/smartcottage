@@ -1,4 +1,4 @@
-all: prometheus bitwarden deluge filebrowser grafana jellyfin pigallery2 portainer nginx-reverse-proxy
+all: prometheus bitwarden deluge filebrowser grafana jellyfin pigallery2 portainer nginx-reverse-proxy squid-cache
 
 prometheus: stop_prometheus start_prometheus
 
@@ -6,7 +6,7 @@ stop_prometheus:
 	cd prometheus; docker compose down
 
 start_prometheus:
-	cd prometheus; docker compose up -d
+	cd prometheus; docker-compose pull; docker compose up -d
 
 bitwarden: stop_bitwarden start_bitwarden
 
@@ -71,3 +71,11 @@ stop_nginx-reverse-proxy:
 
 start_nginx-reverse-proxy:
 	cd nginx-reverse-proxy; ./start.sh
+
+squid-cache: stop_squid-cache start_squid-cache
+
+stop_squid-cache:
+	cd squid-cache; ./stop.sh
+
+start_squid-cache:
+	cd squid-cache; ./start.sh
