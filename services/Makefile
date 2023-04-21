@@ -1,12 +1,22 @@
-all: prometheus bitwarden deluge filebrowser grafana jellyfin pigallery2 portainer nginx-reverse-proxy squid-cache
+all: prometheus elk bitwarden deluge filebrowser grafana jellyfin pigallery2 portainer nginx-reverse-proxy squid-cache
 
 prometheus: stop_prometheus start_prometheus
 
 stop_prometheus:
-	cd prometheus; docker compose down
+	cd prometheus; docker compose down --rmi=all
 
 start_prometheus:
-	cd prometheus; docker-compose pull; docker compose up -d
+	cd prometheus; docker compose pull; docker compose up -d
+
+
+elk: stop_elk start_elk
+
+stop_elk:
+	cd ELK; docker compose down --rmi=all
+
+start_elk:
+	cd ELK; docker compose pull; docker compose up -d
+
 
 bitwarden: stop_bitwarden start_bitwarden
 
@@ -16,6 +26,7 @@ stop_bitwarden:
 start_bitwarden:
 	cd bitwarden; ./start.sh
 
+
 deluge: stop_deluge start_deluge
 
 stop_deluge:
@@ -23,6 +34,7 @@ stop_deluge:
 
 start_deluge:
 	cd deluge; ./start.sh
+
 
 filebrowser: stop_filebrowser start_filebrowser
 
@@ -32,6 +44,7 @@ stop_filebrowser:
 start_filebrowser:
 	cd filebrowser; ./start.sh
 
+
 grafana: stop_grafana start_grafana
 
 stop_grafana:
@@ -39,6 +52,7 @@ stop_grafana:
 
 start_grafana:
 	cd grafana; ./start.sh
+
 
 jellyfin: stop_jellyfin start_jellyfin
 
@@ -48,6 +62,7 @@ stop_jellyfin:
 start_jellyfin:
 	cd jellyfin; ./start.sh
 
+
 pigallery2: stop_pigallery2 start_pigallery2
 
 stop_pigallery2:
@@ -55,6 +70,7 @@ stop_pigallery2:
 
 start_pigallery2:
 	cd pigallery2; ./start.sh
+
 
 portainer: stop_portainer start_portainer
 
@@ -64,6 +80,7 @@ stop_portainer:
 start_portainer:
 	cd portainer; ./start.sh
 
+
 nginx-reverse-proxy: stop_nginx-reverse-proxy start_nginx-reverse-proxy
 
 stop_nginx-reverse-proxy:
@@ -71,6 +88,7 @@ stop_nginx-reverse-proxy:
 
 start_nginx-reverse-proxy:
 	cd nginx-reverse-proxy; ./start.sh
+
 
 squid-cache: stop_squid-cache start_squid-cache
 
