@@ -3,7 +3,7 @@ all: prometheus elk bitwarden deluge filebrowser grafana jellyfin pigallery2 por
 prometheus: stop_prometheus start_prometheus
 
 stop_prometheus:
-	cd prometheus; docker compose down --rmi=all
+	cd prometheus; docker compose down
 
 start_prometheus:
 	cd prometheus; docker compose pull; docker compose up -d
@@ -12,7 +12,7 @@ start_prometheus:
 elk: stop_elk start_elk
 
 stop_elk:
-	cd ELK; docker compose down --rmi=all
+	cd ELK; docker compose down
 
 start_elk:
 	cd ELK; docker compose pull; docker compose up -d
