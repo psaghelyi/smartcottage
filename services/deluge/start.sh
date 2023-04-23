@@ -3,14 +3,14 @@
 docker run -d \
     --name=deluge \
     --pull=always \
-    --restart unless-stopped \
+    --restart=always \
     -e PUID=$(id -u) \
     -e PGID=$(id -g) \
+    --network=host \
     --log-driver=gelf \
     --log-opt gelf-address=udp://localhost:12201 \
     --log-opt tag=deluge \
     -e TZ=Europe/Budapest \
-    --net host \
     -v $PWD/.deluge-config:/config \
     -v /mnt/sda1/Downloads:/downloads \
     lscr.io/linuxserver/deluge:latest

@@ -3,7 +3,7 @@
 docker run -d \
     --name squid-cache \
     --pull=always \
-    --restart unless-stopped \
+    --restart=always \
     -p 3128:3128 \
     --user=$(id -u):$(id -g) \
     --log-driver=gelf \

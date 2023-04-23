@@ -3,7 +3,7 @@
 docker run -d \
   --name=nginx-reverse-proxy \
   --pull=always \
-  --restart unless-stopped \
+  --restart=always \
   --network=host \
   --log-driver=gelf \
   --log-opt gelf-address=udp://localhost:12201 \

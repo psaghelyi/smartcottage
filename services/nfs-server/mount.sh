@@ -4,7 +4,7 @@
 docker run -it --rm \
     --name nfs-client \
     --privileged=true \
-    --net=host \
+    --network=host \
     -v /Users/psaghelyi-remote/rpi4:/mnt/host \
     -e SERVER=192.168.1.40 \
     -e SHARE=nfsshare \

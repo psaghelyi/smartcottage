@@ -1,8 +1,8 @@
 #!/bin/bash
 
 docker run -d \
-    --restart unless-stopped \
     --name smartcottage \
+    --restart=always \
     --add-host host.docker.internal:host-gateway \
     -p 8888:80 \
     --log-driver=gelf \

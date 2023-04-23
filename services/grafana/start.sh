@@ -3,7 +3,7 @@
 docker run -d \
     --name grafana \
     --pull=always \
-    --restart unless-stopped \
+    --restart=always \
     --user=$(id -u):$(id -g) \
     -p 3000:3000 \
     --add-host host.docker.internal:host-gateway \

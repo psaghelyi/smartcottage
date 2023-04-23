@@ -3,7 +3,7 @@
 docker run -d \
     --name bitwarden \
     --pull=always \
-    --restart=unless-stopped \
+    --restart=always \
     --env-file $PWD/.env \
     --user=$(id -u):$(id -g) \
     --log-driver=gelf \

@@ -3,7 +3,7 @@
 docker run -d \
     --name pigallery2 \
     --pull=always \
-    --restart unless-stopped \
+    --restart=always \
     -p 8880:80 \
     --user=$(id -u):$(id -g) \
     --log-driver=gelf \

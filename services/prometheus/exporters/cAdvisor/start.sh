@@ -3,7 +3,7 @@
 VERSION=v0.47.1
 
 sudo docker run -d \
-  --restart unless-stopped \
+  --restart=always \
   --volume=/:/rootfs:ro \
   --volume=/var/run:/var/run:ro \
   --volume=/sys:/sys:ro \

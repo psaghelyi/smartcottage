@@ -1,8 +1,9 @@
 #!/bin/bash
 
 docker run -d \
-  --restart unless-stopped \
   --name=node-exporter \
+  --pull=always \
+  --restart=always \
   --privileged \
   --pid="host" \
   --network="host" \

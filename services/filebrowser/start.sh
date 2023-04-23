@@ -3,7 +3,7 @@
 docker run -d \
     --name filebrowser \
     --pull=always \
-    --restart unless-stopped \
+    --restart=always \
     --user=$(id -u):$(id -g) \
     -p 5555:80 \
     -v /mnt/sda1:/srv \

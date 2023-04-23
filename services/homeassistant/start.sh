@@ -3,7 +3,7 @@
 docker run -d \
     --name=homeassistant \
     --pull=always \
-    --restart unless-stopped \
+    --restart=always \
     -e PUID=$(id -u) \
     -e PGID=$(id -g) \
     -e TZ=Europe/Budapest \

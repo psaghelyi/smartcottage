@@ -4,13 +4,13 @@ docker run -d \
     --name jellyfin \
     --privileged=true \
     --pull=always \
-    --restart=unless-stopped \
+    --restart=always \
     --user $(id -u):$(id -g) \
     -e TZ=Europe/Budapest \
     --log-driver=gelf \
     --log-opt gelf-address=udp://localhost:12201 \
     --log-opt tag=jellyfin \
-    --net=host \
+    --network=host \
     --device=/dev/video10:/dev/video10 \
     --device=/dev/video11:/dev/video11 \
     --device=/dev/video12:/dev/video12 \
