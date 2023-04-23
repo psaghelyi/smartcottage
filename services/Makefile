@@ -1,4 +1,4 @@
-all: prometheus elk bitwarden deluge filebrowser grafana jellyfin pigallery2 portainer nginx-reverse-proxy squid-cache
+all: prometheus elk bitwarden deluge filebrowser grafana jellyfin photoprism portainer nginx-reverse-proxy squid-cache
 
 prometheus: stop_prometheus start_prometheus
 
@@ -63,13 +63,13 @@ start_jellyfin:
 	cd jellyfin; ./start.sh
 
 
-pigallery2: stop_pigallery2 start_pigallery2
+photoprism: stop_photoprism start_photoprism
 
-stop_pigallery2:
-	cd pigallery2; ./stop.sh
+stop_photoprism:
+	cd photoprism; docker compose down
 
-start_pigallery2:
-	cd pigallery2; ./start.sh
+start_photoprism:
+	cd photoprism; docker compose pull; docker compose up -d
 
 
 portainer: stop_portainer start_portainer
