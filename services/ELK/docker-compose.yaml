@@ -60,7 +60,7 @@ services:
   logstash:
     image: arm64v8/logstash:8.6.2
     volumes:
-      - .:/etc/logstash
+      - $PWD/.logstash-config:/etc/logstash
     command: logstash -f /etc/logstash/logstash.conf
     ports:
       - 12201:12201/udp
