@@ -1,4 +1,4 @@
-FROM psaghelyi/nginx-unit:1.28.0-python3.10
+FROM unit:python3.11
 
 COPY app/requirements.txt /app/
 
@@ -8,10 +8,6 @@ COPY config.json /docker-entrypoint.d/config.json
 
 COPY app /app/
 
-#COPY netrc /root/.netrc
-
-#RUN chown nobody:nogroup /root/.netrc
-
-ENV NETRC /nonexistent
+ENV NETRC /app/.netrc
 
 EXPOSE 80 443

@@ -27,8 +27,5 @@ start_web: build_web stop_web
 stop_web:
 	cd web; ./stop.sh
 
-build_web: build_nginx-unit
+build_web:
 	cd web; ./build.sh
-
-build_nginx-unit:
-	cd nginx-unit-python3.10; ./build.sh

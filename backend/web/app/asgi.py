@@ -48,11 +48,12 @@ async def startup_event():
             try:
                 db_client = InfluxDBClientAsync(url="http://host.docker.internal:8086", token=influxdb_token, org=influxdb_org)
                 ready = await db_client.ping()
-            except:
-                pass
-            logger.info(f"{datetime.now()} - ready: {ready}")
+            except Exception as ex:
+                logger.error(f"{datetime.now()} - influxdb: {ex}")
+            logger.info(f"{datetime.now()} - influxdb: ready={ready}")
             if ready:
                 break
+            await db_client.close()
             sleep(3)
 
         write_api = db_client.write_api()
