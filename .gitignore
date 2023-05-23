@@ -138,6 +138,10 @@ dmypy.json
 *.db
 *.pem
 
+# DrawIO temporary files
+*.dtmp
+*.bkp
+
 # volumes
 .*-*/
 .config/
