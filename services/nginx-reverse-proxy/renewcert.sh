@@ -6,4 +6,4 @@ docker run -it --rm \
   --pull=always \
   -v $PWD/.config/certbot/www:/var/www/certbot:rw \
   -v $PWD/.config/certbot/conf:/etc/letsencrypt:rw \
-  certbot/certbot:arm64v8-latest renew
+  certbot/certbot:latest renew
