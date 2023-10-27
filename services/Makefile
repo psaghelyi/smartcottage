@@ -1,4 +1,6 @@
-all: prometheus elk bitwarden deluge filebrowser grafana jellyfin photoprism portainer nginx-reverse-proxy squid-cache
+.PHONY: all
+
+all: prometheus elk bitwarden deluge filebrowser grafana jellyfin portainer nginx-reverse-proxy squid-cache
 
 prometheus: stop_prometheus start_prometheus
 
@@ -6,7 +8,7 @@ stop_prometheus:
 	cd prometheus; docker compose down
 
 start_prometheus:
-	cd prometheus; docker compose pull; docker compose up -d
+	cd prometheus; docker compose pull; UID=$$(id -u) GID=$$(id -g) docker compose up -d
 
 
 elk: stop_elk start_elk

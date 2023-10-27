@@ -4,9 +4,6 @@ networks:
   monitoring:
     driver: bridge
 
-volumes:
-  prometheus-data:
-    
 services:
   node-exporter:
     image: quay.io/prometheus/node-exporter:latest
@@ -61,7 +58,7 @@ services:
     image: prom/prometheus:latest
     restart: unless-stopped
     volumes:
-      - prometheus-data:/prometheus
+      - ./.prometheus-data:/prometheus
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     command:
       - '--storage.tsdb.path=/prometheus'
@@ -72,6 +69,7 @@ services:
       - host.docker.internal:host-gateway
     networks:
       - monitoring
+    user: "${UID}:${GID}"
     depends_on:
       - node-exporter
       - cadvisor

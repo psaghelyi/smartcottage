@@ -15,7 +15,6 @@ installIngress ()
 
   cat <<EOF | helm install --namespace ingress --create-namespace -f - ingress-nginx ingress-nginx/ingress-nginx
 controller:
-<<<<<<< HEAD:kubernetes/install-ingress.sh
   service:
     ports:
       http: 8888
@@ -23,14 +22,4 @@ controller:
   extraArgs:
     default-ssl-certificate: "default/${CERT_NAME}"
 EOF
-=======
-  extraArgs:
-    default-ssl-certificate: "default/${CERT_NAME}"
-EOF
-
-  kubectl wait --namespace ingress-nginx \
-    --for=condition=ready pod \
-    --selector=app.kubernetes.io/component=controller \
-    --timeout=90s
->>>>>>> 7b398b9c2d743b51f26771bd0a1b1d4b98499a29:services/kubernetes/install-ingress.sh
 }

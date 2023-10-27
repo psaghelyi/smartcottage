@@ -19,19 +19,11 @@ ingress:
   enabled: true
   annotations:
     kubernetes.io/ingress.class: nginx
-<<<<<<< HEAD:kubernetes/install-dashboard.sh
-    ingress.kubernetes.io/rewrite-target: /
-  paths:
-    - /dashboard
-  hosts:
-    - psaghelyi.ddns.net
-=======
     ingress.kubernetes.io/rewrite-target: /$2
   paths:
     - /dashboard(/|$)(.*)
   #hosts:
   #  - psaghelyi.ddns.net
->>>>>>> 7b398b9c2d743b51f26771bd0a1b1d4b98499a29:services/kubernetes/install-dashboard.sh
   #tls:
   #  - hosts:
   #      - dashboard.psaghelyi.ddns.net
