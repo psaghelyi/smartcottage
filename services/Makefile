@@ -10,6 +10,14 @@ stop_prometheus:
 start_prometheus:
 	cd prometheus; docker compose pull; UID=$$(id -u) GID=$$(id -g) docker compose up -d
 
+prometheus_exporters: stop_prometheus_exporters start_prometheus_exporters
+
+stop_prometheus_exporters:
+	cd prometheus/exporters; docker compose down
+
+start_prometheus_exporters:
+	cd prometheus/exporters; docker compose pull; docker compose up -d
+
 
 elk: stop_elk start_elk
 

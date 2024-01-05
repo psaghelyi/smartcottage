@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    restart: unless-stopped
+    pid: host
+    privileged: true
+    ports:
+      - 9100:9100
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.1
+    restart: unless-stopped
+    pid: host
+    privileged: true
+    ports:
+      - 8080:8080
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/machine-id:/etc/machine-id:ro
+      - /var/lib/dbus/machine-id:/var/lib/dbus/machine-id:ro
+      - /dev/disk/:/dev/disk:ro        
+
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:0.10.0
+    restart: unless-stopped
+    command:
+      - '-nginx.scrape-uri=http://host.docker.internal:88/stub_status'
+    ports:
+      - 9113:9113
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+  dnsmasq-exporter:
+    build: dnsmasq-exporter/dnsmasq_exporter
+    restart: unless-stopped
+    command:
+      - '-listen=0.0.0.0:9153'
+      - '-dnsmasq=host.docker.internal:53'
+    ports:
+      - 9153:9153
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+
+  
