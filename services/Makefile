@@ -99,3 +99,13 @@ stop_squid-cache:
 
 start_squid-cache:
 	cd squid-cache; ./start.sh
+
+
+shinobi: stop_shinobi start_shinobi
+
+stop_shinobi:
+	cd shinobi; docker compose down
+
+start_shinobi:
+	cd shinobi; docker compose pull; docker compose up -d
+
