@@ -1,7 +1,7 @@
 #!/bin/bash
 
-docker run -d \
-  --name=nginx-reverse-proxy \
+docker run \
+  --name=nginx-reverse-proxy -d \
   --pull=always \
   --restart=always \
   --network=host \
@@ -11,6 +11,5 @@ docker run -d \
   -v $PWD/nginx.conf:/etc/nginx/nginx.conf:ro \
   -v $PWD/nginx.conf.d:/etc/nginx/conf.d:ro \
   -v $PWD/.config/dhparam.pem:/etc/nginx/dhparam.pem:ro \
-  -v $PWD/.config/certbot/www:/var/www/certbot:ro \
   -v $PWD/.config/certbot/conf:/etc/nginx/ssl:ro \
   nginx:latest
