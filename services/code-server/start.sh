@@ -9,7 +9,7 @@ docker run -d \
   -e TZ=Europe/Budapest \
   -e PASSWORD=targa456 \
   -e DEFAULT_WORKSPACE=/Project \
-  -p 9443:8443 \
+  -p 8443:8443 \
   -v $PWD/.config:/config \
   -v /mnt/sda1/Project:/Project \
   lscr.io/linuxserver/code-server:latest
