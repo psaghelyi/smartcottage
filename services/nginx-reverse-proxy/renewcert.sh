@@ -9,4 +9,4 @@ docker run -it --rm \
   -v $PWD/.config/certbot/conf:/etc/letsencrypt:rw \
   -v $PWD/.config/certbot/log:/var/log/letsencrypt:rw \
   -v $PWD/.config/certbot/lib:/var/lib/letsencrypt:rw \
-  certbot/certbot:latest renew --force-renewal
+  certbot/certbot:latest renew

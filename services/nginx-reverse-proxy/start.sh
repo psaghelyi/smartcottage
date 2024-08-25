@@ -12,4 +12,5 @@ docker run \
   -v $PWD/nginx.conf.d:/etc/nginx/conf.d:ro \
   -v $PWD/.config/dhparam.pem:/etc/nginx/dhparam.pem:ro \
   -v $PWD/.config/certbot/conf:/etc/nginx/ssl:ro \
+  -v $PWD/.config/certbot/www:/var/www/certbot:rw \
   nginx:latest
