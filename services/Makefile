@@ -100,6 +100,15 @@ start_nginx-reverse-proxy:
 	cd nginx-reverse-proxy; ./start.sh
 
 
+code-server: stop_code-server start_code-server
+
+stop_code-server:
+	cd code-server; ./stop.sh
+
+start_code-server:
+	cd code-server; ./start.sh
+
+
 squid-cache: stop_squid-cache start_squid-cache
 
 stop_squid-cache:
