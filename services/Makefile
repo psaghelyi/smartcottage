@@ -1,6 +1,15 @@
 .PHONY: all
 
-all: prometheus elk bitwarden deluge filebrowser grafana jellyfin portainer nginx-reverse-proxy squid-cache
+all:
+	@echo "Usage: make [service]"
+
+registry: stop_registry start_registry
+
+stop_registry:
+	cd registry; ./stop.sh
+
+start_registry:
+	cd registry; ./start.sh
 
 prometheus: stop_prometheus start_prometheus
 

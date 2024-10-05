@@ -143,7 +143,9 @@ dmypy.json
 *.bkp
 
 # volumes
-.*-*/
+.*-data/
+.*-config/
+.*-cache/
 .config/
 
 .DS_Store
