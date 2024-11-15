@@ -7,6 +7,7 @@ docker run -d \
     -e PUID=$(id -u) \
     -e PGID=$(id -g) \
     --network=host \
+    --privileged \
     --log-driver=gelf \
     --log-opt gelf-address=udp://localhost:12201 \
     --log-opt tag=deluge \
@@ -15,8 +16,3 @@ docker run -d \
     -v /mnt/sda1/Downloads:/downloads \
     lscr.io/linuxserver/deluge:latest
 
-
-#-p 8112:8112 \
-#-p 6881:6881 \
-#-p 6881:6881/udp \
-  

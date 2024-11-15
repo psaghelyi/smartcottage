@@ -11,7 +11,7 @@ docker run -d \
   -e DEFAULT_WORKSPACE=/Project \
   -p 8443:8443 \
   -v $PWD/.config:/config \
-  -v /mnt/sda1/Project:/Project \
+  -v /mnt/sda1/Project/github/psaghelyi/QML:/Project \
   lscr.io/linuxserver/code-server:latest
 
 
