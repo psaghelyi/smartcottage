@@ -147,6 +147,9 @@ dmypy.json
 .*-config/
 .*-cache/
 .config/
+.data/
+.library/
+.postgres/
 
 .DS_Store
 
