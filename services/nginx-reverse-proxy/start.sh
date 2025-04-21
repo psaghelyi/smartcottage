@@ -1,7 +1,7 @@
 #!/bin/bash
 
-docker run \
-  --name=nginx-reverse-proxy -d \
+docker run -d \
+  --name=nginx-reverse-proxy \
   --pull=always \
   --restart=always \
   --network=host \
