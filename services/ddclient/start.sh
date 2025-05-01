@@ -1,37 +1,26 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail  # exit on error
 
-# Source the .env file if it exists
-if [ -f "$PWD/.env" ]; then
-  set -a  # automatically export all variables
-  source "$PWD/.env"
-  set +a
-else
-  echo "Warning: .env file not found. Make sure CF_API_TOKEN is set in your environment."
-fi
+# Load env vars from .env file
+set -a
+source .env
+set +a
 
-# Explicitly export CF_API_TOKEN to ensure it's available to envsubst
-export CF_API_TOKEN
+# 1. Create stopped container
+CID=$(docker create \
+        --name ddclient \
+        --pull always \
+        --restart unless-stopped \
+        -e PUID=$(id -u) \
+        -e PGID=$(id -g) \
+        -e TZ=Europe/Budapest \
+        lscr.io/linuxserver/ddclient:latest)
 
-# Debug - check if variable is set
-echo "Using CF_API_TOKEN: ${CF_API_TOKEN:-(not set)}"
+# 2. Generate config and copy it in
+tmp=$(mktemp)
+envsubst < ddclient.conf > "$tmp"
+docker cp "$tmp" "$CID:/config/ddclient.conf"
+rm "$tmp"  # clean up temp file
 
-# Create a temporary configuration file with variables substituted
-envsubst < "$PWD/ddclient.conf" > "$PWD/ddclient.conf.tmp"
-
-# Debug - check the generated file
-echo "Generated ddclient.conf.tmp with substituted values:"
-grep -A 1 "password" "$PWD/ddclient.conf.tmp"
-
-docker run -d \
-  --name=ddclient \
-  --pull=always \
-  --restart=always \
-  -e PUID=$(id -u) \
-  -e PGID=$(id -g) \
-  -e TZ=Europe/Budapest \
-  -v "$PWD/ddclient.conf.tmp:/config/ddclient.conf" \
-  --restart unless-stopped \
-  lscr.io/linuxserver/ddclient:latest
-
-# Clean up the temporary file
-#rm "$PWD/ddclient.conf.tmp"
+# 3. Start the container
+docker start "$CID"

@@ -135,3 +135,26 @@ stop_shinobi:
 start_shinobi:
 	cd shinobi; docker compose pull; docker compose up -d
 
+immich: stop_immich start_immich
+
+stop_immich:
+	cd immich; docker compose down
+
+start_immich:
+	cd immich; docker compose pull; docker compose up -d
+
+ddclient: stop_ddclient start_ddclient
+
+stop_ddclient:
+	cd ddclient; ./stop.sh
+
+start_ddclient:
+	cd ddclient; ./start.sh
+
+postgres: stop_postgres start_postgres
+
+stop_postgres:
+	cd postgres; ./stop.sh
+
+start_postgres:
+	cd postgres; ./start.sh
