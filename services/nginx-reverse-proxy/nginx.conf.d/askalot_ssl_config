@@ -1,4 +1,4 @@
-ssl_certificate     /etc/nginx/ssl/live/askalot.io/cert.pem;
+ssl_certificate     /etc/nginx/ssl/live/askalot.io/fullchain.pem;
 ssl_certificate_key /etc/nginx/ssl/live/askalot.io/privkey.pem;
 
 # HSTS (ngx_http_headers_module is required) (63072000 seconds)
