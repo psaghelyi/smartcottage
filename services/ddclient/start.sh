@@ -8,7 +8,7 @@ set +a
 
 # 1. Create stopped container
 CID=$(docker create \
-        --name ddclient \
+        --name askalot-ddclient \
         --pull always \
         --restart unless-stopped \
         -e PUID=$(id -u) \

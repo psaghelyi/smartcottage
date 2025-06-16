@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker rm -f ddclient
+docker rm -f askalot-ddclient
