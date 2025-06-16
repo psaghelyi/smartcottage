@@ -1,0 +1,125 @@
+# Default values for squid-exporter.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+squidConfig:
+  login: ""
+  password: ""
+  hostname: ""
+  port: 3128
+
+# Under normal circumstances one replica is needed.
+replicaCount: 1
+
+image:
+  repository: boynux/squid-exporter
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  {}
+  # fsGroup: 2000
+
+securityContext:
+  {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  # Kubernetes Service type, one of [ClusterIP, NodePort, LoadBalancer]
+  type: ClusterIP
+  port: 80
+
+  # Supports either ClientIP or None.
+  # Used to maintain session affinity.
+  # Enable client IP based session affinity.
+  # https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies
+  sessionAffinity: ClientIP
+
+  # Service settings below are applicable only if
+  # service.type is one of [LoadBalancer, NodePort] and not ClusterIP.
+  # Possible values are [Cluster, Local].
+  # If set to Local, then the Service's port will be available only on Kubernetes
+  # Nodes which have the Squid Pods so no Kubernetes Node-to-Node traffic will be forwarded.
+  # If set to Cluster, then the Service's port will be available on any Node of
+  # a Kubernetes cluster. The drawback is that Kubernetes will use double NAT
+  # so it will hide the Client source IP from Squid.
+  externalTrafficPolicy: Cluster
+  # Node port to listen on. Typically, Kubernetes allows ports in range 30000-32767
+  # see https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
+  # for more information.
+  nodePort: ""
+
+ingress:
+  enabled: false
+  className: ""
+  annotations:
+    {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources:
+  {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+serviceMonitor:
+  enabled: false
+  additionalMetricsRelabels: []
+  additionalRelabeling: []
+  labels: {}
+  interval: 30s
+  scrapeTimeout: 30s
+  # Prometheus Operator rules to install
+  rules:
+    []
+    # - alert: SquidDown
+    #   annotations:
+    #     message: Exporter can not collect metrics from Squid proxy server {{ $labels.host }}
+    #   expr: squid_up == 0
+    #   for: 5m
+    #   labels:
+    #     severity: critical

@@ -1,0 +1,29 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "squid-exporter.fullname" . }}
+  labels:
+    {{- include "squid-exporter.labels" . | nindent 4 }}
+    {{- with .Values.serviceMonitor.labels }}
+    {{- . | toYaml | nindent 4 }}
+    {{- end }}
+spec:
+  endpoints:
+    - port: metrics
+      interval: {{ .Values.serviceMonitor.interval }}
+      metricRelabelings:
+        {{- .Values.serviceMonitor.additionalMetricsRelabels | toYaml | nindent 10 }}
+      path: "/metrics"
+      relabelings:
+        {{- .Values.serviceMonitor.additionalRelabeling | toYaml | nindent 10 }}      
+      scheme: http
+      scrapeTimeout: {{ .Values.serviceMonitor.scrapeTimeout }}
+  targetLabels:
+    {{- range $label, $val := .Values.serviceMonitor.labels }}
+    - {{ $label }}
+    {{- end }}
+    - squid-exporter.boynux.com/proxy-hostname
+    - squid-exporter.boynux.com/proxy-port
+  selector:
+    matchLabels:
+      {{- include "squid-exporter.selectorLabels" . | nindent 8 }}
