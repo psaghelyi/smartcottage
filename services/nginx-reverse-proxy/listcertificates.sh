@@ -1,6 +1,6 @@
 #!/bin/bash
 
-docker run -it --rm \
+docker run --rm \
   --name=certbot-renew \
   --network=host \
   --pull=always \
