@@ -157,3 +157,6 @@ backend/web/app/secrets.py
 services/homeassistant/token
 
 .env
+
+# User-specific upload scripts
+upload_*.sh
