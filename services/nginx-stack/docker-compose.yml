@@ -3,6 +3,7 @@ name: nginx-stack
 services:
   nginx:
     image: nginx:latest
+    pull_policy: always
     container_name: nginx
     restart: always
     network_mode: host
@@ -25,6 +26,7 @@ services:
 
   certbot:
     image: certbot/certbot:latest
+    pull_policy: always
     container_name: certbot
     restart: "no"
     environment:
