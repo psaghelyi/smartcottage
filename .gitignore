@@ -149,12 +149,9 @@ dmypy.json
 .config/
 .data/
 .library/
-.postgres/
-
 .DS_Store
 
 backend/web/app/secrets.py
-services/homeassistant/token
 
 .env
 
