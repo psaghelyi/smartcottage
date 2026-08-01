@@ -160,3 +160,6 @@ upload_*.sh
 
 # live secrets kept on-disk for OS-upgrade migration, never committed
 rpibridge/secrets/
+
+# local memsearch plugin state
+.memsearch/
