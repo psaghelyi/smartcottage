@@ -189,9 +189,15 @@ rollback path.
   before considering this done — this touches the container runtime for every
   service on the box, including Shinobi.
 
-**Phase 3 — OS major upgrade (Debian 11 bullseye → 12 bookworm)**
+**Phase 3 — OS major upgrade (Debian 11 bullseye → Raspberry Pi OS Lite 64-bit, Debian 13 "trixie")**
+- As of 2026-08, Trixie is the current Raspberry Pi OS release (Bookworm is now
+  "Legacy"); since this is a fresh-flash, not an in-place `apt dist-upgrade`, there's
+  no reason to stop at the intermediate Bookworm release — go straight to current.
+  Docker CE, ZeroTier, and InfluxDB's apt repos all already have trixie builds.
+  Worth double-checking during the migration: the NodeSource repo is currently pinned
+  to Node 16.x/bullseye (Node 16 itself is long EOL regardless) and needs revisiting.
 - Given this device is a live router/bridge with a hand-built VLAN + bridge +
-  ZeroTier-bridging network stack, prefer **flashing a fresh Bookworm image on a
+  ZeroTier-bridging network stack, prefer **flashing a fresh image on a
   spare SD card** over an in-place `apt dist-upgrade`. Re-apply the (now-synced)
   `rpibridge/*.network` configs, dnsmasq config, Docker, and ZeroTier from this repo,
   and validate the full network path (VLAN trunk, bridge, ZeroTier bridging, DHCP/DNS)
@@ -211,3 +217,8 @@ rollback path.
   remove the cron band-aid at this point.
 - Every `services/Makefile` target starts cleanly.
 - Shinobi recording and reachable through the nginx reverse proxy.
+- `npx playwright install --with-deps chromium` succeeds (Playwright MCP's browser
+  install) — blocked on current bullseye: Playwright 1.62 hard-refuses to install any
+  browser (chromium, headless-shell, firefox) on `debian11-arm64`, not a missing-deps
+  issue but a platform-support gate. `@playwright/mcp` itself is already installed
+  globally via npm and just needs the browser once the OS is current.
