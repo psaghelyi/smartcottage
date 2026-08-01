@@ -1,6 +1,9 @@
 [Match]
 Name=eth0
 
+#[Link]
+#Unmanaged=yes
+
 [Network]
 DHCP=no
 
@@ -16,5 +19,4 @@ LLDP=no
 EmitLLDP=no
 IPv6AcceptRA=no
 IPv6SendRA=no
-
 

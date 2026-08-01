@@ -2,10 +2,11 @@
 Name=br0
 
 [Network]
+DHCP=no
 Address=192.168.192.1/24
-DNS=192.168.192.48 1.1.1.1
-DHCPServer=true
-MulticastDNS=true
+DNS=127.0.0.1
+DHCPServer=no
+MulticastDNS=yes
 
 LinkLocalAddressing=no
 LLDP=no
@@ -14,14 +15,28 @@ IPv6AcceptRA=no
 IPv6SendRA=no
 
 [Route]
-Gateway=192.168.192.48
+Gateway=192.168.192.10
 Destination=192.168.1.0/24
 
-[DHCPServer]
-PoolOffset=150
-PoolSize=50
-DefaultLeaseTimeSec=300s
-EmitDNS=yes
-DNS=192.168.192.48 192.168.1.1 1.1.1.1
-EmitRouter=yes
-Router=192.168.192.1
+#[DHCPServer]
+#PoolOffset=150
+#PoolSize=55
+#DefaultLeaseTimeSec=300
+#EmitDNS=yes
+#DNS=192.168.192.48 192.168.1.1 1.1.1.1
+#EmitRouter=yes
+#Router=192.168.192.1
+
+#[DHCPServerStaticLease]
+#MACAddress=00:5f:67:79:11:4a
+#Address=192.168.192.201
+#[DHCPServerStaticLease]
+#MACAddress=6c:5a:b0:3a:58:57
+#Address=192.168.192.202
+#[DHCPServerStaticLease]
+#MACAddress=b4:b0:24:ae:b0:77
+#Address=192.168.192.203
+#[DHCPServerStaticLease]
+#MACAddress=54:af:97:65:07:b0
+#Address=192.168.192.204
+

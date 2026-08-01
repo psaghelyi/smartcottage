@@ -157,3 +157,6 @@ backend/web/app/secrets.py
 
 # User-specific upload scripts
 upload_*.sh
+
+# live secrets kept on-disk for OS-upgrade migration, never committed
+rpibridge/secrets/

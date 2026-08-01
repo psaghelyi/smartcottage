@@ -1,95 +1,34 @@
-# Switch to networkd
+# rpibridge network config
 
-## Remove non-systemd networking packages.
+The `*.network` / `*.netdev` files in this directory are copies of what's deployed
+under `/etc/systemd/network/` on the live box — kept in sync with `git diff` against
+the live files before editing either side. See the top-level `CLAUDE.md` for the full
+topology (VLANs, bridge, ZeroTier, dnsmasq) and how these files fit together.
 
-```
-$ sudo apt remove --purge --auto-remove dhcpcd5 fake-hwclock ifupdown isc-dhcp-client isc-dhcp-common openresolv
-$ sudo killall wpa_supplicant
-$ sudo killall dhcpcd
-```
+To deploy a change: edit the file here, copy it to `/etc/systemd/network/`, then
+`sudo systemctl restart systemd-networkd` (or reboot) and verify with `networkctl`.
 
-## Configure systemd networking.
+## `etc-backup/` and `secrets/` — OS upgrade / SD card migration
 
-### Create config file for the usb0 interface:
+`etc-backup/` holds plain-text copies of live `/etc` files that aren't part of a
+package install and would otherwise only exist on this SD card: `dnsmasq.conf`,
+`iptables-rules.v4`, `resolved.conf`, `fstab`, `crontab-root.txt`. These are tracked
+in git like everything else here — refresh them (`sudo cp /etc/... rpibridge/etc-backup/...`)
+whenever you change the live equivalent, same as the `*.network` files above.
 
-`sudo nano /etc/systemd/network/10-usb0.network`
+`secrets/` holds the one piece of state that's genuinely irreplaceable and can't go
+in git: the ZeroTier node identity. See `secrets/README.md` for what's there and how
+to restore it on a freshly imaged box — **do this before first-booting ZeroTier on
+the new install**, or the box gets a new ZeroTier address and has to be re-authorized
+on the network.
 
-and enter the following in it:
-
-> [Match]
-> Name=usb0
->
-> [Network]
-> LinkLocalAddressing=ipv4
-
-This will enable Link Local Address, aka APIPA (Automatic Private IP Addressing) on usb0.
-
-### Create config file for the wlan0 interface, e.g.:
-
-`sudo nano /etc/systemd/network/10-wlan0.network`
-
-with the following contents:
-
-> [Match]
-> Name=wlan0
-> 
-> [Network]
-> DHCP=ipv4
-
-This will enable DHCP on wlan0.
-
-### Create config file for the eth0 interface:
-
-`sudo nano /etc/systemd/network/10-eth0.network`
-
-with the following contents:
-
-> [Match]
-> Name=eth0
-> 
-> [Network]
-> DHCP=ipv4
-
-This will enable DHCP address on eth0. If you want to use a static IP address instead, replace the last line with:
-
-> Address=192.168.1.100/24
-> Gateway=192.168.1.1
-
-or whatever your address, netmask and gateway are. 
-
-
-## Enable systemd networking.
-
-### Enable network management service:
-
-`$ sudo systemctl enable systemd-networkd`
-
-### Enable network name resolution (DNS) service:
-
-```
-$ sudo ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
-$ sudo systemctl enable systemd-resolved
-```
-
-### Enable network time synchronization (NTP) service:
-
-`$ sudo systemctl enable systemd-timesyncd`
-
-### Reboot:
-
-`$ sudo reboot`
-
-### Check if everything is working:
-
-```
-$ systemctl status systemd-networkd
-$ systemctl status systemd-resolved
-$ systemctl status systemd-timesyncd
-```
-
-
-
-
+Other stateful data that migrates by plain filesystem copy rather than git (already
+gitignored, already living inside this repo tree): `services/portainer/.portainer-data`,
+`services/nginx-reverse-proxy/.config/` (Let's Encrypt certs + Cloudflare API token),
+`services/homeassistant/token`, and any other `.*-data/`/`.*-config/` directories under
+`services/`. Shinobi's data does *not* need migrating — it lives on `/mnt/sda1`, a
+separate physical disk untouched by an SD card swap (see `etc-backup/fstab` for the
+mount entry, keyed to the disk's own PARTUUID so it carries over unchanged).
 
 # Setup router
 
